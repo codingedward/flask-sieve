@@ -1,2 +1,2 @@
 # flask-sieve
-Insert some cool text here.
+A Laravel inspired requests validator for Flask.
