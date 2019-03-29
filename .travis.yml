@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.6"
+services:
+  - postgresql
+install:
+  - source travis-env.sh
+  - pip install -r requirements.txt
+before_script:
+  - psql -c 'create database db_test;' -U postgres
+  - psql -c "create user foo with password 'bar';" -U postgres
+# run tests
+script:
+  - nosetests --with-coverage --cover-package app
+after_success: 
+    - coveralls
