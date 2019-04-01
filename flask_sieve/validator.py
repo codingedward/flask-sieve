@@ -1,9 +1,17 @@
 """
-
 """
+import sys
 import ast
 import json
 import operator
+import requests
+from requests import RequestException
+
+if sys.version_info[0] >= 3:
+    from urllib.request import urlopen
+else:
+    from urllib import urlopen
+    from urllib.error import URLError
 
 class Validator:
     def __init__(self, rules={}, request={}):
@@ -42,7 +50,11 @@ class Validator:
         return value in [ 1, '1', 'true', 'yes', 'on', True]
 
     def validate_active_url(self, value, **kwargs):
-        return False
+        try:
+            requests.options(value)
+            return True
+        except (URLError, IOError):
+            return False
 
     def validate_after(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='after')
@@ -104,7 +116,7 @@ class Validator:
         return value == self._attribute_value(attribute)
 
     def validate_date(self, value, **kwargs):
-        return self._parse_date(value) != None
+        return self._parse_date(value) is not None
 
     def validate_date_equals(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='date_equals')
@@ -164,7 +176,7 @@ class Validator:
         return value < upper
 
     def validate_gte(self, value, **kwargs):
-        self._assert_params_size(size=1, params=params, rule='gt')
+        self._assert_params_size(size=1, params=params, rule='gte')
         value = self._get_size(value)
         upper = self._get_size(self._attribute_value(params[0]))
         return value <= upper
@@ -191,8 +203,8 @@ class Validator:
     def validate_ip(self, value, **kwargs):
         return self.validate_ipv4(value) or self.validate_ipv6(value)
 
-    def validate_ipv6(ip):
-        # https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
+    def validate_ipv6(self, value, **kwargs):
+        # S/0: question 319279
         pattern = re.compile(r"""
             ^
             \s*                         # Leading whitespace
@@ -219,10 +231,10 @@ class Validator:
             \s*                         # Trailing whitespace
             $
         """, re.VERBOSE | re.IGNORECASE | re.DOTALL)
-        return pattern.match(ip) is not None
+        return pattern.match(value) is not None
 
-    def validate_ipv4(ip):
-        # https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
+    def validate_ipv4(self, value, **kwargs):
+        # S/0: question 319279
         pattern = re.compile(r"""
             ^
             (?:
@@ -257,7 +269,7 @@ class Validator:
             )
             $
         """, re.VERBOSE | re.IGNORECASE)
-        return pattern.match(ip) is not None
+        return pattern.match(value) is not None
 
     def validate_json(self, value, **kwargs):
         try:
@@ -284,14 +296,13 @@ class Validator:
         upper = self._get_size(params[0])
         return value <= upper
 
-    def validate_mime_types(self, value, **kwargs):
-        return False
+    def validate_mime_types(self, value, params, **kwargs):
+        self._assert_params_size(size=1, params=params, rule='mime_types')
+        return value.mimetype in params
 
-    def validate_mime_types_by_file(self, value, **kwargs):
-        return False
-
-    def validate_extension(self, value, **kwargs):
-        return False
+    def validate_extension(self, value, params, **kwargs):
+        self._assert_params_size(size=1, params=params, rule='mime_types')
+        return value.filename.split('.')[-1].lower() == params[0]
 
     def validate_min(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='min')
@@ -457,7 +468,7 @@ class Validator:
     def _assert_params_size(size, params, rule):
         if count < len(params):
             raise Exception(
-                '%s rule requires at least %s parameter, non provided' %
+                '%s rule requires at least %s parameter(s), non provided.' %
                 rule.title(), size
             )
 
