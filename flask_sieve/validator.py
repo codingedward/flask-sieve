@@ -1,20 +1,17 @@
 """
 """
+import re
 import sys
 import ast
 import json
 import operator
 import requests
-from requests import RequestException
-
-if sys.version_info[0] >= 3:
-    from urllib.request import urlopen
-else:
-    from urllib import urlopen
-    from urllib.error import URLError
+from dateutil.parser import parse as parse_date
+from requests.exceptions import RequestException
 
 class Validator:
-    def __init__(self, rules={}, request={}):
+    def __init__(self, app=None, rules={}, request={}):
+        self._app = app
         self._rules = rules
         self._request = request
         self._custom_handlers = {}
@@ -25,23 +22,37 @@ class Validator:
 
     def passes(self):
         validated_attributes = []
+        passes = True
         for attribute, rules in self._rules.items():
             should_bail = self._has_rule(rules, 'bail')
+            nullable = self._has_rule(rules, 'nullable')
             for rule in rules:
                 handler = self._get_rule_handler(rule['name'])
                 value = self._attribute_value(attribute)
                 is_valid = handler(
                     value=value, 
                     attribute=attribute, 
-                    params=rule['params']
+                    params=rule['params'],
+                    nullable=nullable
                 )
                 validated_attributes.append({
-                    attribute: attrribute,
-                    is_valid: is_valid
+                    'attribute': attribute,
+                    'is_valid': is_valid
                 })
-                if should_bail and not is_valid:
-                    return False
-        return True
+                if not is_valid:
+                    passes = False
+                    if should_bail:
+                        return False
+        return passes
+    
+    def set_app(self, app):
+        self._app = app
+
+    def set_rules(self, rules):
+        self._rules = rules
+
+    def set_request(self, request):
+        self._request = request
 
     def register_rule_handler(self, handler):
         self._custom_handlers[handler.__name__] = handler
@@ -53,7 +64,7 @@ class Validator:
         try:
             requests.options(value)
             return True
-        except (URLError, IOError):
+        except RequestException:
             return False
 
     def validate_after(self, value, params, **kwargs):
@@ -62,7 +73,7 @@ class Validator:
 
     def validate_after_or_equal(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='after_or_equal')
-        return self._compare_dates(value, params[0], operator.gte)
+        return self._compare_dates(value, params[0], operator.ge)
 
     def validate_alpha(self, value, **kwargs):
         if not value: 
@@ -87,7 +98,7 @@ class Validator:
 
     def validate_array(self, value, **kwargs):
         try:
-            return isinstance(ast.literal_eval(value), list)
+            return isinstance(ast.literal_eval(str(value)), list)
         except Exception:
             return False
 
@@ -100,7 +111,7 @@ class Validator:
 
     def validate_before_or_equal(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='before_or_equal')
-        return self._compare_dates(value, params[0], operator.lte)
+        return self._compare_dates(value, params[0], operator.le)
 
     def validate_between(self, value, params, **kwargs):
         self._assert_params_size(size=2, params=params, rule='between')
@@ -110,54 +121,63 @@ class Validator:
         return lower <= value and value <= upper
 
     def validate_boolean(self, value, **kwargs):
-        return value in [true, false, 1, 0, '0', '1']
+        return value in [True, False, 1, 0, '0', '1']
 
     def validate_confirmed(self, value, attribute, **kwargs):
-        return value == self._attribute_value(attribute)
+        return value == self._attribute_value(attribute + '_confirmation')
 
     def validate_date(self, value, **kwargs):
-        return self._parse_date(value) is not None
+        try:
+            parse_date(value)
+            return True
+        except (ValueError, TypeError):
+            return False
 
     def validate_date_equals(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='date_equals')
         return self._compare_dates(value, params[0], operator.eq)
 
-    def validate_date_format(self, value, params, **kwargs):
-        return False
-
     def validate_different(self, value, attribute, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='different')
-        return value != params[0]
+        return value != self._attribute_value(params[0])
 
     def validate_digits(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='digits')
-        size = self._get_size(params[0])
-        return not re.match(r'[^0-9]', value) and len(str(value)) == size
+        self._assert_int(params[0])
+        size = int(params[0])
+        decimal_counts = str(value).count('.')
+        value = str(value).replace('.', '')
+        return decimal_counts <= 1 and value.isdigit() and len(value) == size
 
-    def validate_digits_between(self, value, **kwargs):
-        self._assert_params_size(size=2, params=params, rule='digits')
-        value = self._get_size(value)
-        lower = self._get_size(params[0])
-        upper = self._get_size(params[1])
-        return not re.match(r'[^0-9]', value) and \
-                lower <= value and value <= upper
+    def validate_digits_between(self, value, params, **kwargs):
+        self._assert_params_size(size=2, params=params, rule='digits_between')
+        self._assert_int(params[0])
+        self._assert_int(params[1])
+        lower = int(params[0])
+        upper = int(params[1])
+        decimal_counts = str(value).count('.')
+        value = str(value).replace('.', '')
+        value_len = len(value)
+        return decimal_counts <= 1 and \
+                value.isdigit() and \
+                lower <= value_len and value_len <= upper
 
     def validate_dimensions(self, value, **kwargs):
         return False
 
     def validate_distinct(self, value, **kwargs):
         try:
-            lst = ast.literal_eval(value)
+            lst = ast.literal_eval(str(value))
             if not isinstance(lst, list):
                 return False
             return len(set(lst)) == len(lst)
-        except Exception as e:
+        except Exception:
             return False
 
     def validate_email(self, value, **kwargs):
         return re.match(
             "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-            value
+            str(value)
         ) is not None
 
     def validate_exists(self, value, **kwargs):
@@ -173,13 +193,13 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='gt')
         value = self._get_size(value)
         upper = self._get_size(self._attribute_value(params[0]))
-        return value < upper
+        return value > upper
 
-    def validate_gte(self, value, **kwargs):
+    def validate_gte(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='gte')
         value = self._get_size(value)
         upper = self._get_size(self._attribute_value(params[0]))
-        return value <= upper
+        return value >= upper
 
     def validate_image(self, value, **kwargs):
         return False
@@ -188,17 +208,16 @@ class Validator:
         return value in params
 
     def validate_in_array(self, value, params, **kwargs):
+        self._assert_params_size(size=1, params=params, rule='in_array')
+        other_value = self._attribute_value(params[0])
         try:
-            lst = ast.literal_eval(value)
-            for param in params:
-                if param not in lst:
-                    return False
-            return True
-        except Exception as e:
+            lst = ast.literal_eval(str(other_value))
+            return value in lst
+        except Exception:
             return False
 
     def validate_integer(self, value, **kwargs):
-        return re.match(r'[0-9]', str(value)) is not None
+        return str(value).isdigit()
 
     def validate_ip(self, value, **kwargs):
         return self.validate_ipv4(value) or self.validate_ipv6(value)
@@ -282,13 +301,13 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='lt')
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
-        return value > lower
+        return value < lower
 
-    def validate_lte(self, value, **kwargs):
+    def validate_lte(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lte')
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
-        return value >= lower
+        return value <= lower
 
     def validate_max(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='max')
@@ -308,7 +327,7 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='min')
         value = self._get_size(value)
         lower = self._get_size(params[0])
-        return value <= lower
+        return value >= lower
 
     def validate_not_in(self, value, params, **kwargs):
         return not self.validate_in(value, params)
@@ -322,7 +341,7 @@ class Validator:
     def validate_numeric(self, value, **kwargs):
         return value and value.isnumeric()
 
-    def validate_present(self, value, attribute, **kwargs):
+    def validate_present(self, attribute, **kwargs):
         accessors = attribute.split('.')
         request_param = self._request
         for accessor in accessors:
@@ -336,9 +355,10 @@ class Validator:
         self._assert_regex(params[0])
         return re.match(params[0], value)
 
-    def validate_required(self, value, **kwargs):
-        if not value:
+    def validate_required(self, value, attribute, nullable, **kwargs):
+        if not value and not nullable:
             return False
+        return self.validate_present(value=value, attribute=attribute)
 
     def validate_required_if(self, value, params, **kwargs):
         self._assert_params_size(size=2, params=params, rule='required_if')
@@ -414,8 +434,7 @@ class Validator:
 
     def validate_url(self, value, **kwargs):
         """
-         This pattern is derived from Symfony\Component\Validator\Constraints\UrlValidator (2.7.4).
-         (c) Fabien Potencier <fabien@symfony.com> http://symfony.com
+         This pattern is derived from (c) Fabien Potencier <fabien@symfony.com> http://symfony.com
         """
         pattern = re.compile(r"""
             ^
@@ -444,8 +463,14 @@ class Validator:
             value.lower()
         ) is not None
 
+    def _compare_dates(self, first, second, comporator):
+        try:
+            return comporator(parse_date(first), parse_date(second))
+        except Exception:
+            return False
+
     def _has_rule(self, rules, rule_name):
-        return len(filter(lambda rule: rule['name'] == rule_name)) != 0
+        return rule_name in rules
 
     def _get_rule_handler(self, rule_name):
         handler_name = 'validate_' + rule_name
@@ -456,6 +481,15 @@ class Validator:
         else:
             raise Exception("Validator: no handler for rule " + rule_name)
 
+    def _get_size(self, value):
+        try:
+            float_value = float(value)
+            return float_value
+        except ValueError:
+            pass
+
+        return len(value) 
+
     def _attribute_value(self, attribute):
         accessors = attribute.split('.')
         request_param = self._request
@@ -465,11 +499,11 @@ class Validator:
             request_param = request_param[accessor]
         return request_param
 
-    def _assert_params_size(size, params, rule):
-        if count < len(params):
-            raise Exception(
+    def _assert_params_size(self, size, params, rule):
+        if size > len(params):
+            raise ValueError(
                 '%s rule requires at least %s parameter(s), non provided.' %
-                rule.title(), size
+                (rule.title(), size)
             )
 
     def _assert_regex(self, regex):
