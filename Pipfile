@@ -9,6 +9,7 @@ verify_ssl = true
 requests = "*"
 nose = "*"
 python-dateutil = "*"
+pytz = "*"
 
 [requires]
 python_version = "3.7"

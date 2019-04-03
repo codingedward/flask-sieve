@@ -317,16 +317,6 @@ class TestValidator(unittest.TestCase):
             request={'field': 'person'}
         )
 
-    def test_validates_not_in(self):
-        self.assert_passes(
-            rules={'field': 'not_in:male,female'},
-            request={'field': 'person'}
-        )
-        self.assert_fails(
-            rules={'field': 'not_in:male,female'},
-            request={'field': 'female'}
-        )
-
     def test_validates_in_array(self):
         self.assert_passes(
             rules={'field': 'in_array:field_2'},
@@ -473,6 +463,284 @@ class TestValidator(unittest.TestCase):
 
     def test_validates_mime_types(self):
         pass
+
+    def test_validates_not_in(self):
+        self.assert_passes(
+            rules={'field': 'not_in:male,female'},
+            request={'field': 'person'}
+        )
+        self.assert_fails(
+            rules={'field': 'not_in:male,female'},
+            request={'field': 'female'}
+        )
+
+    def test_validates_not_regex(self):
+        self.assert_passes(
+            rules={'field': r'not_regex:[0-9]'},
+            request={'field': 'person'}
+        )
+        self.assert_passes(
+            rules={'field': r'not_regex:\d'},
+            request={'field': 'person'}
+        )
+        self.assert_fails(
+            rules={'field': r'not_regex:\d'},
+            request={'field': '10'}
+        )
+
+    def test_validates_numeric(self):
+        self.assert_passes(
+            rules={'field': 'numeric'},
+            request={'field': '1.2004'}
+        )
+        self.assert_passes(
+            rules={'field': 'numeric'},
+            request={'field': 2000.04}
+        )
+        self.assert_fails(
+            rules={'field': 'numeric'},
+            request={'field': 'x10'}
+        )
+
+    def test_validates_present(self):
+        self.assert_passes(
+            rules={'field': 'present'},
+            request={'field': '1.2004'}
+        )
+        self.assert_passes(
+            rules={'field': 'present'},
+            request={'field': 2000.04}
+        )
+        self.assert_passes(
+            rules={'field': 'present'},
+            request={'field': None}
+        )
+        self.assert_fails(
+            rules={'field': 'present'},
+            request={'field_2': 'x10'}
+        )
+
+    def test_validates_regex(self):
+        self.assert_passes(
+            rules={'field': r'regex:[0-9]'},
+            request={'field': '01234567'}
+        )
+        self.assert_passes(
+            rules={'field': r'regex:^\w'},
+            request={'field': 'person'}
+        )
+        self.assert_fails(
+            rules={'field': r'regex:\d'},
+            request={'field': 'hi there'}
+        )
+
+    def test_validates_required(self):
+        self.assert_passes(
+            rules={'field': 'required'},
+            request={'field': 'hi'}
+        )
+        self.assert_fails(
+            rules={'field': 'required'},
+            request={'field': []}
+        )
+        self.assert_fails(
+            rules={'field': 'required'},
+            request={'field': ''}
+        )
+        self.assert_fails(
+            rules={'field': 'required'},
+            request={'field': None}
+        )
+
+    def test_validates_required_if(self):
+        self.assert_passes(
+            rules={'field': 'required_if:field_2,one,two'},
+            request={'field': 'three', 'field_2': 'one'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_if:field_2,one,two'},
+            request={'field': '', 'field_2': 'three'}
+        )
+        self.assert_fails(
+            rules={'field': 'required_if:field_2,one,two'},
+            request={'field': '', 'field_2': 'one'}
+        )
+
+    def test_validates_required_unless(self):
+        self.assert_passes(
+            rules={'field': 'required_unless:field_2,one,two'},
+            request={'field': 'three', 'field_2': 'four'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_unless:field_2,one,two'},
+            request={'field': '', 'field_2': 'one'}
+        )
+        self.assert_fails(
+            rules={'field': 'required_unless:field_2,one,two'},
+            request={'field': '', 'field_2': 'three'}
+        )
+
+    def test_validates_required_with(self):
+        self.assert_passes(
+            rules={'field': 'required_with:field_2'},
+            request={'field': 'three', 'field_2': 'four'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_with:field_2'},
+            request={'field': 'hi', 'field_2': ''}
+        )
+        self.assert_fails(
+            rules={'field': 'required_with:field_2'},
+            request={'field': '', 'field_2': ''}
+        )
+
+    def test_validates_required_with_all(self):
+        self.assert_passes(
+            rules={'field': 'required_with_all:field_2,field_3'},
+            request={'field': 'three', 'field_2': 'four', 'field_3': 'five'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_with_all:field_2,field_3'},
+            request={'field': '', 'field_2': 'hi'}
+        )
+        self.assert_fails(
+            rules={'field': 'required_with_all:field_2'},
+            request={'field': '', 'field_2': ''}
+        )
+
+    def test_validates_required_without(self):
+        self.assert_passes(
+            rules={'field': 'required_without:field_2,field_3'},
+            request={'field': '', 'field_2': 'four', 'field_3': 'five'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_without:field_2,field_3'},
+            request={'field': 'hello', 'field_2': 'hi'}
+        )
+        self.assert_fails(
+            rules={'field': 'required_without:field_2,field_3'},
+            request={'field': '', 'field_2': ''}
+        )
+
+    def test_validates_required_without_all(self):
+        self.assert_passes(
+            rules={'field': 'required_without_all:field_2,field_3'},
+            request={'field': '', 'field_2': 'four'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_without_all:field_2,field_3'},
+            request={'field': '', 'field_2': 'hi', 'field_3': 'there'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_without_all:field_2,field_3'},
+            request={'field': 'hi' }
+        )
+        self.assert_fails(
+            rules={'field': 'required_without_all:field_2,field_3'},
+            request={'field': '' }
+        )
+
+    def test_validates_same(self):
+        self.assert_passes(
+            rules={'field': 'same:field_2'},
+            request={'field': 1, 'field_2': 1}
+        )
+        self.assert_fails(
+            rules={'field': 'same:field_2'},
+            request={'field': 1, 'field_2': 2}
+        )
+
+    def test_validates_size(self):
+        self.assert_passes(
+            rules={'field': 'size:2'},
+            request={'field': 'hi'}
+        )
+        self.assert_passes(
+            rules={'field': 'size:20'},
+            request={'field': 20}
+        )
+        self.assert_passes(
+            rules={'field': 'size:20.5'},
+            request={'field': '20.5'}
+        )
+        self.assert_fails(
+            rules={'field': 'size:1'},
+            request={'field': 'hi'}
+        )
+
+    def test_validates_starts_with(self):
+        self.assert_passes(
+            rules={'field': 'starts_with:hi'},
+            request={'field': 'hi there'}
+        )
+        self.assert_passes(
+            rules={'field': 'starts_with:2'},
+            request={'field': 20}
+        )
+        self.assert_fails(
+            rules={'field': 'starts_with:hi'},
+            request={'field': '20.5'}
+        )
+
+    def test_validates_string(self):
+        self.assert_passes(
+            rules={'field': 'string'},
+            request={'field': 'hi there'}
+        )
+        self.assert_passes(
+            rules={'field': 'string'},
+            request={'field': '20.5'}
+        )
+        self.assert_fails(
+            rules={'field': 'string'},
+            request={'field': 20}
+        )
+
+    def test_validates_timezone(self):
+        self.assert_passes(
+            rules={'field': 'timezone'},
+            request={'field': 'Africa/Nairobi'}
+        )
+        self.assert_passes(
+            rules={'field': 'timezone'},
+            request={'field': 'Atlantic/Cape_Verde'}
+        )
+        self.assert_passes(
+            rules={'field': 'timezone'},
+            request={'field': 'Etc/Universal'}
+        )
+        self.assert_fails(
+            rules={'field': 'timezone'},
+            request={'field': 'hi'}
+        )
+
+    def test_validates_url(self):
+        self.assert_passes(
+            rules={'field': 'url'},
+            request={'field': 'https://google.com'}
+        )
+        self.assert_passes(
+            rules={'field': 'url'},
+            request={'field': 'http://127.0.0.1:8080'}
+        )
+        self.assert_passes(
+            rules={'field': 'url'},
+            request={'field': 'ftp://127.0.0.1:8080'}
+        )
+        self.assert_fails(
+            rules={'field': 'url'},
+            request={'field': 'hi'}
+        )
+
+    def test_validates_uuid(self):
+        self.assert_passes(
+            rules={'field': 'uuid'},
+            request={'field': '06d007b0-5608-11e9-8647-d663bd873d93'}
+        )
+        self.assert_fails(
+            rules={'field': 'uuid'},
+            request={'field': '06d007b0-560647-d663bd873d93'}
+        )
 
     def assert_fails(self, rules, request):
         self._assert(rules, request, False)

@@ -4,10 +4,15 @@ import re
 import sys
 import ast
 import json
+import pytz
 import operator
 import requests
-from dateutil.parser import parse as parse_date
+from dateutil.parser import parse as dateparse
 from requests.exceptions import RequestException
+if sys.version_info[0] >= 3:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 class Validator:
     def __init__(self, app=None, rules={}, request={}):
@@ -128,7 +133,7 @@ class Validator:
 
     def validate_date(self, value, **kwargs):
         try:
-            parse_date(value)
+            dateparse(value)
             return True
         except (ValueError, TypeError):
             return False
@@ -143,24 +148,20 @@ class Validator:
 
     def validate_digits(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='digits')
-        self._assert_int(params[0])
+        self._assert_with_method(int, params[0])
         size = int(params[0])
-        decimal_counts = str(value).count('.')
-        value = str(value).replace('.', '')
-        return decimal_counts <= 1 and value.isdigit() and len(value) == size
+        is_numeric = self.validate_numeric(value)
+        return is_numeric and len(str(value).replace('.', '')) == size
 
     def validate_digits_between(self, value, params, **kwargs):
         self._assert_params_size(size=2, params=params, rule='digits_between')
-        self._assert_int(params[0])
-        self._assert_int(params[1])
+        self._assert_with_method(int, params[0])
+        self._assert_with_method(int, params[1])
         lower = int(params[0])
         upper = int(params[1])
-        decimal_counts = str(value).count('.')
-        value = str(value).replace('.', '')
-        value_len = len(value)
-        return decimal_counts <= 1 and \
-                value.isdigit() and \
-                lower <= value_len and value_len <= upper
+        is_numeric = self.validate_numeric(value)
+        value_len = len(str(value).replace('.', ''))
+        return is_numeric and lower <= value_len and value_len <= upper
 
     def validate_dimensions(self, value, **kwargs):
         return False
@@ -339,7 +340,9 @@ class Validator:
         return True
 
     def validate_numeric(self, value, **kwargs):
-        return value and value.isnumeric()
+        decimal_counts = str(value).count('.')
+        value = str(value).replace('.', '')
+        return decimal_counts <= 1 and value.isdigit()
 
     def validate_present(self, attribute, **kwargs):
         accessors = attribute.split('.')
@@ -352,7 +355,7 @@ class Validator:
 
     def validate_regex(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='regex')
-        self._assert_regex(params[0])
+        self._assert_with_method(re.compile, params[0])
         return re.match(params[0], value)
 
     def validate_required(self, value, attribute, nullable, **kwargs):
@@ -360,54 +363,50 @@ class Validator:
             return False
         return self.validate_present(value=value, attribute=attribute)
 
-    def validate_required_if(self, value, params, **kwargs):
+    def validate_required_if(self, value, attribute, params, nullable, **kwargs):
         self._assert_params_size(size=2, params=params, rule='required_if')
         other_value = self._attribute_value(params[0])
         if str(other_value) in params[1:]:
-            return self.validate_required(value)
+            return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_unless(self, value, params, **kwargs):
+    def validate_required_unless(self, value, attribute, params, nullable, **kwargs):
         self._assert_params_size(size=2, params=params, rule='required_unless')
         other_value = self._attribute_value(params[0])
         if other_value not in params[1:]:
-            return self.validate_required(value)
+            return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_with(self, value, params, **kwargs):
-        self._assert_params_size(size=2, params=params, rule='required_with')
-        for attribute in params:
-            attribute_value = self._attribute_value(attribute)
-            if self.validate_required(attribute_value):
-                return self.validate_required(value)
+    def validate_required_with(self, value, attribute, params, nullable, **kwargs):
+        self._assert_params_size(size=1, params=params, rule='required_with')
+        for param in params:
+            if self.validate_present(param):
+                return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_with_all(self, value, params, **kwargs):
-        self._assert_params_size(size=2, params=params, 
+    def validate_required_with_all(self, value, attribute, params, nullable, **kwargs):
+        self._assert_params_size(size=1, params=params, 
                 rule='required_with_all')
-        for attribute in params:
-            attribute_value = self._attribute_value(attribute)
-            if not self.validate_required(attribute_value):
+        for param in params:
+            if not self.validate_present(param):
                 return True
-        return self.validate_required(value)
+        return self.validate_required(value, attribute, nullable)
 
-    def validate_without(self, value, params, **kwargs):
-        self._assert_params_size(size=2, params=params, 
+    def validate_required_without(self, value, attribute, params, nullable, **kwargs):
+        self._assert_params_size(size=1, params=params, 
                 rule='required_without')
-        for attribute in params:
-            attribute_value = self._attribute_value(attribute)
-            if not self.validate_required(attribute_value):
-                return self.validate_required(value)
+        for param in params:
+            if not self.validate_present(param):
+                return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_without_all(self, value, params, **kwargs):
-        self._assert_params_size(size=2, params=params, 
+    def validate_required_without_all(self, value, attribute, params, nullable, **kwargs):
+        self._assert_params_size(size=1, params=params, 
                 rule='required_without_all')
-        for attribute in params:
-            attribute_value = self._attribute_value(attribute)
-            if self.validate_required(attribute_value):
+        for param in params:
+            if self.validate_present(param):
                 return True
-        return self.validate_required(value)
+        return self.validate_required(value, attribute, nullable)
 
     def validate_same(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='same')
@@ -416,43 +415,37 @@ class Validator:
 
     def validate_size(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='size')
-        return str(self._get_size(value)) == params[0]
+        self._assert_with_method(float, params[0])
+        other_value = params[0]
+        if other_value.count('.') > 0:
+            other_value = float(other_value)
+        else:
+            other_value = int(other_value)
+        return self._get_size(value) == other_value
 
     def validate_starts_with(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='starts_with')
-        return value.startswith(params[0])
+        return str(value).startswith(params[0])
 
     def validate_string(self, value, **kwargs):
         return isinstance(value, 
                 str if sys.version_info[0] >= 3 else basestring)
 
     def validate_timezone(self, value, **kwargs):
-        return False
+        return value in pytz.all_timezones
 
     def validate_unique(self, value, **kwargs):
         return False
 
     def validate_url(self, value, **kwargs):
-        """
-         This pattern is derived from (c) Fabien Potencier <fabien@symfony.com> http://symfony.com
-        """
         pattern = re.compile(r"""
-            ^
-            ((aaa|aaas|about|acap|acct|acr|adiumxtra|afp|afs|aim|apt|attachment|aw|barion|beshare|bitcoin|blob|bolo|callto|cap|chrome|chrome-extension|cid|coap|coaps|com-eventbrite-attendee|content|crid|cvs|data|dav|dict|dlna-playcontainer|dlna-playsingle|dns|dntp|dtn|dvb|ed2k|example|facetime|fax|feed|feedready|file|filesystem|finger|fish|ftp|geo|gg|git|gizmoproject|go|gopher|gtalk|h323|ham|hcp|http|https|iax|icap|icon|im|imap|info|iotdisco|ipn|ipp|ipps|irc|irc6|ircs|iris|iris.beep|iris.lwz|iris.xpc|iris.xpcs|itms|jabber|jar|jms|keyparc|lastfm|ldap|ldaps|magnet|mailserver|mailto|maps|market|message|mid|mms|modem|ms-help|ms-settings|ms-settings-airplanemode|ms-settings-bluetooth|ms-settings-camera|ms-settings-cellular|ms-settings-cloudstorage|ms-settings-emailandaccounts|ms-settings-language|ms-settings-location|ms-settings-lock|ms-settings-nfctransactions|ms-settings-notifications|ms-settings-power|ms-settings-privacy|ms-settings-proximity|ms-settings-screenrotation|ms-settings-wifi|ms-settings-workplace|msnim|msrp|msrps|mtqp|mumble|mupdate|mvn|news|nfs|ni|nih|nntp|notes|oid|opaquelocktoken|pack|palm|paparazzi|pkcs11|platform|pop|pres|prospero|proxy|psyc|query|redis|rediss|reload|res|resource|rmi|rsync|rtmfp|rtmp|rtsp|rtsps|rtspu|secondlife|s3|service|session|sftp|sgn|shttp|sieve|sip|sips|skype|smb|sms|smtp|snews|snmp|soap.beep|soap.beeps|soldat|spotify|ssh|steam|stun|stuns|submit|svn|tag|teamspeak|tel|teliaeid|telnet|tftp|things|thismessage|tip|tn3270|turn|turns|tv|udp|unreal|urn|ut2004|vemmi|ventrilo|videotex|view-source|wais|webcal|ws|wss|wtai|wyciwyg|xcon|xcon-userid|xfire|xmlrpc\.beep|xmlrpc.beeps|xmpp|xri|ymsgr|z39\.50|z39\.50r|z39\.50s)):// # protocol
-            (([\pL\pN-]+:)?([\pL\pN-]+)@)?  # basic auth
-            (
-                ([\pL\pN\pS\-\.])+(\.?([\pL]|xn\-\-[\pL\pN-]+)+\.?) # a domain name
-                    |                                              # or
-                \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}                 # an IP address
-                    |                                              # or
-                \[
-                    (?:(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){6})(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:::(?:(?:(?:[0-9a-f]{1,4})):){5})(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:[0-9a-f]{1,4})))?::(?:(?:(?:[0-9a-f]{1,4})):){4})(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,1}(?:(?:[0-9a-f]{1,4})))?::(?:(?:(?:[0-9a-f]{1,4})):){3})(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,2}(?:(?:[0-9a-f]{1,4})))?::(?:(?:(?:[0-9a-f]{1,4})):){2})(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,3}(?:(?:[0-9a-f]{1,4})))?::(?:(?:[0-9a-f]{1,4})):)(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,4}(?:(?:[0-9a-f]{1,4})))?::)(?:(?:(?:(?:(?:[0-9a-f]{1,4})):(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,5}(?:(?:[0-9a-f]{1,4})))?::)(?:(?:[0-9a-f]{1,4})))|(?:(?:(?:(?:(?:(?:[0-9a-f]{1,4})):){0,6}(?:(?:[0-9a-f]{1,4})))?::))))
-                \]  # an IPv6 address
-            )
-            (:[0-9]+)?                              # a port (optional)
-            (/?|/\S+|\?\S*|\#\S*)                   # a /, nothing, a / with something, a query or a fragment
-            $/ixu
-        """, re.VERBOSE | re.IGNORECASE)
+            ^(https?|ftp)://  # http, https or ftp
+            (?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|  # domain...
+            localhost|  # localhost...
+            \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) # ...or ip
+            (?::\d+)?  # optional port
+            (?:/?|[/?]\S+)$
+        """, re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return pattern.match(value) is not None
 
     def validate_uuid(self, value, **kwargs):
@@ -465,7 +458,7 @@ class Validator:
 
     def _compare_dates(self, first, second, comporator):
         try:
-            return comporator(parse_date(first), parse_date(second))
+            return comporator(dateparse(first), dateparse(second))
         except Exception:
             return False
 
@@ -486,9 +479,7 @@ class Validator:
             float_value = float(value)
             return float_value
         except ValueError:
-            pass
-
-        return len(value) 
+            return len(value)
 
     def _attribute_value(self, attribute):
         accessors = attribute.split('.')
@@ -506,16 +497,18 @@ class Validator:
                 (rule.title(), size)
             )
 
-    def _assert_regex(self, regex):
+    def _assert_with_method(self, method, value):
         try:
-            re.compile(regex)
-            return True
-        except re.error:
-            return False
+            method(value)
+        except:
+            raise ValueError(
+                'Cannot call method %s with value %s' %
+                (method.__name__, str(value))
+            )
 
-    def _assert_int(self, value):
+    def _can_call_with_method(self, method, value):
         try:
-            int(value)
+            self._assert_with_method(method, value)
             return True
-        except re.error:
+        except:
             return False
