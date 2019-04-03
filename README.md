@@ -1,4 +1,7 @@
 # flask-sieve
+[![Build Status](https://travis-ci.org/codingedward/flask-sieve.svg?branch=master)](https://travis-ci.org/codingedward/flask-sieve)
+[![Coverage Status](https://coveralls.io/repos/github/codingedward/flask-sieve/badge.svg?branch=master)](https://coveralls.io/github/codingedward/flask-sieve?branch=master)
+
 A Laravel inspired requests validator for Flask.
 
 ## Note

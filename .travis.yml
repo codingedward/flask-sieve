@@ -1,16 +1,16 @@
 language: python
 python:
+  - "2.7"
   - "3.6"
-services:
-  - postgresql
+#services:
+# - postgresql
 install:
-  - source travis-env.sh
   - pip install -r requirements.txt
-before_script:
-  - psql -c 'create database db_test;' -U postgres
-  - psql -c "create user foo with password 'bar';" -U postgres
+#before_script:
+#  - psql -c 'create database db_test;' -U postgres
+#- psql -c "create user foo with password 'bar';" -U postgres
 # run tests
 script:
-  - nosetests --with-coverage --cover-package app
+  - nosetests --with-coverage --cover-package flask_sieve
 after_success: 
     - coveralls

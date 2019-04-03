@@ -10,6 +10,7 @@ requests = "*"
 nose = "*"
 python-dateutil = "*"
 pytz = "*"
+coveralls = "*"
 
 [requires]
 python_version = "3.7"

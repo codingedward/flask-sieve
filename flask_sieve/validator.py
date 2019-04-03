@@ -9,10 +9,6 @@ import operator
 import requests
 from dateutil.parser import parse as dateparse
 from requests.exceptions import RequestException
-if sys.version_info[0] >= 3:
-    from urllib.parse import urlparse
-else:
-    from urlparse import urlparse
 
 class Validator:
     def __init__(self, app=None, rules={}, request={}):
