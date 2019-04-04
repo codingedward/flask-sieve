@@ -47,9 +47,6 @@ class Validator:
                     if should_bail:
                         return False
         return passes
-    
-    def set_app(self, app):
-        self._app = app
 
     def set_rules(self, rules):
         self._rules = rules
@@ -183,10 +180,16 @@ class Validator:
     def validate_exists(self, value, **kwargs):
         return False
 
+    def validate_extension(self, value, params, **kwargs):
+        if not self.validate_file(value):
+            return False
+        self._assert_params_size(size=1, params=params, rule='extension')
+        return value.filename.split('.')[-1].lower() == params[0]
+
     def validate_file(self, value, **kwargs):
         return isinstance(value, FileStorage)
 
-    def validate_filled(self, value, attribute, **kwargs):
+    def validate_filled(self, value, attribute, nullable, **kwargs):
         if self.validate_present(attribute):
             return self.validate_required(value, attribute, nullable)
         return True
@@ -317,12 +320,10 @@ class Validator:
         return value <= upper
 
     def validate_mime_types(self, value, params, **kwargs):
+        if not self.validate_file(value):
+            return False
         self._assert_params_size(size=1, params=params, rule='mime_types')
         return value.mimetype in params
-
-    def validate_extension(self, value, params, **kwargs):
-        self._assert_params_size(size=1, params=params, rule='mime_types')
-        return value.filename.split('.')[-1].lower() == params[0]
 
     def validate_min(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='min')
@@ -454,9 +455,9 @@ class Validator:
             str(value).lower()
         ) is not None
 
-    def _compare_dates(self, first, second, comporator):
+    def _compare_dates(self, first, second, comparator):
         try:
-            return comporator(dateparse(first), dateparse(second))
+            return comparator(dateparse(first), dateparse(second))
         except Exception:
             return False
 
@@ -468,7 +469,10 @@ class Validator:
             return False
 
     def _has_rule(self, rules, rule_name):
-        return rule_name in rules
+        for rule in rules:
+            if rule['name'] == rule_name:
+                return True
+        return False
 
     def _get_rule_handler(self, rule_name):
         handler_name = 'validate_' + rule_name
@@ -477,7 +481,7 @@ class Validator:
         elif handler_name in self._custom_handlers:
             return self._custom_handlers[handler_name]
         else:
-            raise Exception("Validator: no handler for rule " + rule_name)
+            raise ValueError("Validator: no handler for rule " + rule_name)
 
     def _get_size(self, value):
         try:

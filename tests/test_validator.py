@@ -12,7 +12,24 @@ class TestValidator(unittest.TestCase):
         self.image_file = FileStorage(
             stream=self.stream,
             filename='tests/files/image.png',
+            content_type='image/png',
             name='image'
+        )
+        self.invalid_file = FileStorage(
+            stream=self.stream,
+            filename='invalid.png'
+        )
+
+    def test_validates_accepted(self):
+        acceptables = [ 1, '1', 'true', 'yes', 'on', True]
+        for acceptable in acceptables:
+            self.assert_passes(
+                rules={'field': 'accepted'},
+                request={'field': acceptable},
+            )
+        self.assert_fails(
+            rules={'field': 'accepted'},
+            request={'field': 'hi'},
         )
 
     def test_validates_active_url(self):
@@ -21,7 +38,7 @@ class TestValidator(unittest.TestCase):
             request={'field': 'https://google.com'},
         )
         self.assert_fails(
-            rules={'field': 'active_url'},
+            rules={'field': 'bail|active_url'},
             request={'field': 'https://gxxgle.cxm'},
         )
         
@@ -60,6 +77,10 @@ class TestValidator(unittest.TestCase):
         )
         self.assert_fails(
             rules={'field': 'alpha'},
+            request={}
+        )
+        self.assert_fails(
+            rules={'field': 'alpha'},
             request={'field': 'abcd1234'}
         )
 
@@ -70,6 +91,10 @@ class TestValidator(unittest.TestCase):
         )
         self.assert_fails(
             rules={'field': 'alpha_dash'},
+            request={}
+        )
+        self.assert_fails(
+            rules={'field': 'alpha_dash'},
             request={'field': 'abcd1234'}
         )
 
@@ -77,6 +102,10 @@ class TestValidator(unittest.TestCase):
         self.assert_passes(
             rules={'field': 'alpha_num'},
             request={'field': 'abcd1234'}
+        )
+        self.assert_fails(
+            rules={'field': 'alpha_num'},
+            request={}
         )
         self.assert_fails(
             rules={'field': 'alpha_num'},
@@ -265,6 +294,10 @@ class TestValidator(unittest.TestCase):
         )
         self.assert_fails(
             rules={'field': 'dimensions:2x1'},
+            request={'field': self.invalid_file}
+        )
+        self.assert_fails(
+            rules={'field': 'dimensions:2x1'},
             request={'field': 'hi'}
         )
 
@@ -283,12 +316,36 @@ class TestValidator(unittest.TestCase):
         )
         self.assert_fails(
             rules={'field': 'distinct'},
+            request={'field': '["a":1, "b":2, "c":4}'}
+        )
+        self.assert_fails(
+            rules={'field': 'distinct'},
+            request={'field': '{"a":1, "b":2, "c":4}'}
+        )
+        self.assert_fails(
+            rules={'field': 'distinct'},
             request={'field': [1, 1]}
+        )
+
+    def test_validates_exists(self):
+        self.assert_fails(
+            rules={'field': 'exists'},
+            request={}
+        )
+
+    def test_validates_extension(self):
+        self.assert_passes(
+            rules={'field': 'extension:png'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'extension:png'},
+            request={'field': 1}
         )
 
     def test_validates_email(self):
         self.assert_passes(
-            rules={'field': 'email'},
+            rules={'field': 'email|nullable'},
             request={'field': 'john@doe.com'}
         )
         self.assert_passes(
@@ -308,6 +365,20 @@ class TestValidator(unittest.TestCase):
         self.assert_fails(
             rules={'field': 'file'},
             request={'field': 'hi'}
+        )
+
+    def test_validates_filled(self):
+        self.assert_passes(
+            rules={'field': 'filled'},
+            request={'field': 'hi'}
+        )
+        self.assert_passes(
+            rules={'field': 'filled'},
+            request={}
+        )
+        self.assert_fails(
+            rules={'field': 'filled'},
+            request={'field': None}
         )
 
     def test_validates_gt(self):
@@ -366,6 +437,10 @@ class TestValidator(unittest.TestCase):
         self.assert_passes(
             rules={'field': 'in_array:field_2'},
             request={'field': 'male', 'field_2': ['male', 'female']}
+        )
+        self.assert_fails(
+            rules={'field': 'in_array:field_2'},
+            request={'field': '{"a":1, "b":2, "c":4}', 'field_2':'hi'}
         )
         self.assert_fails(
             rules={'field': 'in_array:field_2'},
@@ -496,6 +571,16 @@ class TestValidator(unittest.TestCase):
             request={'field': 30}
         )
 
+    def test_validates_mime_types(self):
+        self.assert_passes(
+            rules={'field': 'mime_types:image/png'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'mime_types:image/png'},
+            request={'field': 1}
+        )
+
     def test_validates_min(self):
         self.assert_passes(
             rules={'field': 'min:0'},
@@ -505,9 +590,6 @@ class TestValidator(unittest.TestCase):
             rules={'field': 'min:10'},
             request={'field': 0}
         )
-
-    def test_validates_mime_types(self):
-        pass
 
     def test_validates_not_in(self):
         self.assert_passes(
@@ -629,6 +711,10 @@ class TestValidator(unittest.TestCase):
         self.assert_passes(
             rules={'field': 'required_with:field_2'},
             request={'field': 'three', 'field_2': 'four'}
+        )
+        self.assert_passes(
+            rules={'field': 'required_with:field_2'},
+            request={'field': ''}
         )
         self.assert_passes(
             rules={'field': 'required_with:field_2'},
@@ -759,6 +845,12 @@ class TestValidator(unittest.TestCase):
             request={'field': 'hi'}
         )
 
+    def test_validates_unique(self):
+        self.assert_fails(
+            rules={'field': 'unique'},
+            request={}
+        )
+
     def test_validates_url(self):
         self.assert_passes(
             rules={'field': 'url'},
@@ -783,8 +875,52 @@ class TestValidator(unittest.TestCase):
             request={'field': '06d007b0-5608-11e9-8647-d663bd873d93'}
         )
         self.assert_fails(
-            rules={'field': 'uuid|bail'},
+            rules={'field': 'uuid'},
             request={'field': '06d007b0-560647-d663bd873d93'}
+        )
+
+    def test_custom_handlers(self):
+        handler = lambda value, **kwargs: value % 2
+        handler.__name__ = 'validate_custom_validator'
+        self.validator.register_rule_handler(handler)
+        self.assert_passes(
+            rules={'field': 'custom_validator'},
+            request={'field': 3}
+        )
+        self.assert_fails(
+            rules={'field': 'custom_validator'},
+            request={'field': 2}
+        )
+
+    def test_get_rule_handler(self):
+        handler = self.validator._get_rule_handler('ip')
+        self.assertEqual(handler.__name__, 'validate_ip')
+
+        with self.assertRaises(ValueError):
+            self.validator._get_rule_handler('wow')
+
+    def test_assert_params_size(self):
+        handler = self.validator._get_rule_handler('ip')
+        self.assertEqual(handler.__name__, 'validate_ip')
+
+        with self.assertRaises(ValueError):
+            self.validator._assert_params_size(size=1, params=[], rule='hi')
+
+    def test_compare_dates(self):
+        import operator
+        self.assertTrue(
+            self.validator._compare_dates(
+                '2018-02-10',
+                '2019-02-10', 
+                operator.lt
+            )
+        )
+        self.assertFalse(
+            self.validator._compare_dates(
+                'S',
+                '2019-02-10', 
+                operator.lt
+            )
         )
 
     def assert_fails(self, rules, request):
