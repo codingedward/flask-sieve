@@ -2,8 +2,8 @@
 """
 
 class Parser:
-    def __init__(self, rules={}):
-        self._rules = rules
+    def __init__(self, rules=None):
+        self._rules = rules or {}
 
     def set_rules(self, rules):
         self._rules = rules

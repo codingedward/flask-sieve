@@ -41,7 +41,7 @@ class TestValidator(unittest.TestCase):
             rules={'field': 'bail|active_url'},
             request={'field': 'https://gxxgle.cxm'},
         )
-        
+
     def test_validates_after(self):
         self.assert_passes(
             rules={'field': 'after:2018-08-02'},
@@ -207,20 +207,6 @@ class TestValidator(unittest.TestCase):
         self.assert_fails(
             rules={'field': 'date'},
             request={'field': True}
-        )
-
-    def test_validates_date_equals(self):
-        self.assert_passes(
-            rules={'field': 'date_equals:2018-08-02'},
-            request={'field': '2nd August 2018'}
-        )
-        self.assert_fails(
-            rules={'field': 'date_equals:2018-08-03'},
-            request={'field': '3rd March 2019'}
-        )
-        self.assert_fails(
-            rules={'field': 'date_equals:2018-09-02'},
-            request={'field': '2nd Sept 2017'}
         )
 
     def test_validates_date_equals(self):
@@ -468,7 +454,7 @@ class TestValidator(unittest.TestCase):
     def test_validates_ip(self):
         self.assert_passes(
             rules={'field': 'ip'},
-            request={'field': '0.0.0.0'}
+            request={'field': '0.1.0.0'}
         )
         self.assert_passes(
             rules={'field': 'ip'},
@@ -911,14 +897,14 @@ class TestValidator(unittest.TestCase):
         self.assertTrue(
             self.validator._compare_dates(
                 '2018-02-10',
-                '2019-02-10', 
+                '2019-02-10',
                 operator.lt
             )
         )
         self.assertFalse(
             self.validator._compare_dates(
                 'S',
-                '2019-02-10', 
+                '2019-02-10',
                 operator.lt
             )
         )

@@ -13,10 +13,10 @@ from werkzeug.datastructures import FileStorage
 from PIL import Image
 
 class Validator:
-    def __init__(self, app=None, rules={}, request={}):
+    def __init__(self, app=None, rules=None, request=None):
         self._app = app
-        self._rules = rules
-        self._request = request
+        self._rules = rules or {}
+        self._request = request or {}
         self._custom_handlers = {}
         self._validated_attributes = {}
 
@@ -33,8 +33,8 @@ class Validator:
                 handler = self._get_rule_handler(rule['name'])
                 value = self._attribute_value(attribute)
                 is_valid = handler(
-                    value=value, 
-                    attribute=attribute, 
+                    value=value,
+                    attribute=attribute,
                     params=rule['params'],
                     nullable=nullable
                 )
@@ -57,7 +57,8 @@ class Validator:
     def register_rule_handler(self, handler):
         self._custom_handlers[handler.__name__] = handler
 
-    def validate_accepted(self, value, **kwargs):
+    @staticmethod
+    def validate_accepted(value, **kwargs):
         return value in [ 1, '1', 'true', 'yes', 'on', True]
 
     def validate_active_url(self, value, **kwargs):
@@ -71,13 +72,15 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='after_or_equal')
         return self._compare_dates(value, params[0], operator.ge)
 
-    def validate_alpha(self, value, **kwargs):
-        if not value: 
+    @staticmethod
+    def validate_alpha(value, **kwargs):
+        if not value:
             return False
         value = str(value).replace(' ', '')
         return value.isalpha()
 
-    def validate_alpha_dash(self, value, **kwargs):
+    @staticmethod
+    def validate_alpha_dash(value, **kwargs):
         if not value:
             return False
         value = str(value)
@@ -85,20 +88,23 @@ class Validator:
         for acceptable in acceptables:
             value = value.replace(acceptable, '')
         return value.isalpha()
-    
-    def validate_alpha_num(self, value, **kwargs):
+
+    @staticmethod
+    def validate_alpha_num(value, **kwargs):
         if not value:
             return False
         value = str(value).replace(' ', '')
         return value.isalnum()
 
-    def validate_array(self, value, **kwargs):
+    @staticmethod
+    def validate_array(value, **kwargs):
         try:
             return isinstance(ast.literal_eval(str(value)), list)
         except (ValueError, SyntaxError):
             return False
 
-    def validate_bail(self, **kwargs):
+    @staticmethod
+    def validate_bail(**kwargs):
         return True
 
     def validate_before(self, value, params, **kwargs):
@@ -112,11 +118,12 @@ class Validator:
     def validate_between(self, value, params, **kwargs):
         self._assert_params_size(size=2, params=params, rule='between')
         value = self._get_size(value)
-        lower = self._get_size(params[0]) 
-        upper = self._get_size(params[1]) 
+        lower = self._get_size(params[0])
+        upper = self._get_size(params[1])
         return lower <= value and value <= upper
 
-    def validate_boolean(self, value, **kwargs):
+    @staticmethod
+    def validate_boolean(value, **kwargs):
         return value in [True, False, 1, 0, '0', '1']
 
     def validate_confirmed(self, value, attribute, **kwargs):
@@ -162,7 +169,8 @@ class Validator:
         except Exception:
             return False
 
-    def validate_distinct(self, value, **kwargs):
+    @staticmethod
+    def validate_distinct(value, **kwargs):
         try:
             lst = ast.literal_eval(str(value))
             if not isinstance(lst, list):
@@ -171,13 +179,15 @@ class Validator:
         except (ValueError, SyntaxError):
             return False
 
-    def validate_email(self, value, **kwargs):
+    @staticmethod
+    def validate_email(value, **kwargs):
         return re.match(
             "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
             str(value)
         ) is not None
 
-    def validate_exists(self, value, **kwargs):
+    @staticmethod
+    def validate_exists(value, **kwargs):
         return False
 
     def validate_extension(self, value, params, **kwargs):
@@ -186,7 +196,8 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='extension')
         return value.filename.split('.')[-1].lower() == params[0]
 
-    def validate_file(self, value, **kwargs):
+    @staticmethod
+    def validate_file(value, **kwargs):
         return isinstance(value, FileStorage)
 
     def validate_filled(self, value, attribute, nullable, **kwargs):
@@ -212,7 +223,8 @@ class Validator:
         ext = value.filename.split('.')[-1]
         return ext in ['jpg', 'jpeg', 'gif', 'png', 'tiff', 'tif']
 
-    def validate_in(self, value, params, **kwargs):
+    @staticmethod
+    def validate_in(value, params, **kwargs):
         return value in params
 
     def validate_in_array(self, value, params, **kwargs):
@@ -224,13 +236,15 @@ class Validator:
         except (ValueError, SyntaxError):
             return False
 
-    def validate_integer(self, value, **kwargs):
+    @staticmethod
+    def validate_integer(value, **kwargs):
         return str(value).isdigit()
 
     def validate_ip(self, value, **kwargs):
         return self.validate_ipv4(value) or self.validate_ipv6(value)
 
-    def validate_ipv6(self, value, **kwargs):
+    @staticmethod
+    def validate_ipv6(value, **kwargs):
         # S/0: question 319279
         pattern = re.compile(r"""
             ^
@@ -249,7 +263,7 @@ class Validator:
                  |  (?<!:)              #
                  |  (?<=:) (?<!::) :    #
                  )                      # OR
-             |                          #   A v4 address with NO leading zeros 
+             |                          #   A v4 address with NO leading zeros
                 (?:25[0-4]|2[0-4]\d|1\d\d|[1-9]?\d)
                 (?: \.
                     (?:25[0-4]|2[0-4]\d|1\d\d|[1-9]?\d)
@@ -260,7 +274,8 @@ class Validator:
         """, re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return pattern.match(value) is not None
 
-    def validate_ipv4(self, value, **kwargs):
+    @staticmethod
+    def validate_ipv4(value, **kwargs):
         # S/0: question 319279
         pattern = re.compile(r"""
             ^
@@ -337,10 +352,12 @@ class Validator:
     def validate_not_regex(self, value, params, **kwargs):
         return not self.validate_regex(value, params)
 
-    def validate_nullable(self, value, **kwargs):
+    @staticmethod
+    def validate_nullable(value, **kwargs):
         return True
 
-    def validate_numeric(self, value, **kwargs):
+    @staticmethod
+    def validate_numeric(value, **kwargs):
         decimal_counts = str(value).count('.')
         value = str(value).replace('.', '')
         return decimal_counts <= 1 and value.isdigit()
@@ -386,7 +403,7 @@ class Validator:
         return True
 
     def validate_required_with_all(self, value, attribute, params, nullable, **kwargs):
-        self._assert_params_size(size=1, params=params, 
+        self._assert_params_size(size=1, params=params,
                 rule='required_with_all')
         for param in params:
             if not self.validate_present(param):
@@ -394,7 +411,7 @@ class Validator:
         return self.validate_required(value, attribute, nullable)
 
     def validate_required_without(self, value, attribute, params, nullable, **kwargs):
-        self._assert_params_size(size=1, params=params, 
+        self._assert_params_size(size=1, params=params,
                 rule='required_without')
         for param in params:
             if not self.validate_present(param):
@@ -402,7 +419,7 @@ class Validator:
         return True
 
     def validate_required_without_all(self, value, attribute, params, nullable, **kwargs):
-        self._assert_params_size(size=1, params=params, 
+        self._assert_params_size(size=1, params=params,
                 rule='required_without_all')
         for param in params:
             if self.validate_present(param):
@@ -428,17 +445,21 @@ class Validator:
         self._assert_params_size(size=1, params=params, rule='starts_with')
         return str(value).startswith(params[0])
 
-    def validate_string(self, value, **kwargs):
-        return isinstance(value, 
+    @staticmethod
+    def validate_string(value, **kwargs):
+        return isinstance(value,
                 str if sys.version_info[0] >= 3 else basestring)
 
-    def validate_timezone(self, value, **kwargs):
+    @staticmethod
+    def validate_timezone(value, **kwargs):
         return value in pytz.all_timezones
 
-    def validate_unique(self, value, **kwargs):
+    @staticmethod
+    def validate_unique(value, **kwargs):
         return False
 
-    def validate_url(self, value, **kwargs):
+    @staticmethod
+    def validate_url(value, **kwargs):
         pattern = re.compile(r"""
             ^(https?|ftp)://  # http, https or ftp
             (?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|  # domain...
@@ -449,13 +470,15 @@ class Validator:
         """, re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return pattern.match(value) is not None
 
-    def validate_uuid(self, value, **kwargs):
+    @staticmethod
+    def validate_uuid(value, **kwargs):
         return re.match(
             r'^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$',
             str(value).lower()
         ) is not None
 
-    def _compare_dates(self, first, second, comparator):
+    @staticmethod
+    def _compare_dates(first, second, comparator):
         try:
             return comparator(dateparse(first), dateparse(second))
         except Exception:
@@ -465,10 +488,11 @@ class Validator:
         try:
             self._assert_with_method(method, value)
             return True
-        except:
+        except ValueError:
             return False
 
-    def _has_rule(self, rules, rule_name):
+    @staticmethod
+    def _has_rule(rules, rule_name):
         for rule in rules:
             if rule['name'] == rule_name:
                 return True
@@ -483,7 +507,8 @@ class Validator:
         else:
             raise ValueError("Validator: no handler for rule " + rule_name)
 
-    def _get_size(self, value):
+    @staticmethod
+    def _get_size(value):
         try:
             float_value = float(value)
             return float_value
@@ -499,14 +524,16 @@ class Validator:
             request_param = request_param[accessor]
         return request_param
 
-    def _assert_params_size(self, size, params, rule):
+    @staticmethod
+    def _assert_params_size(size, params, rule):
         if size > len(params):
             raise ValueError(
                 '%s rule requires at least %s parameter(s), non provided.' %
                 (rule.title(), size)
             )
 
-    def _assert_with_method(self, method, value):
+    @staticmethod
+    def _assert_with_method(method, value):
         try:
             method(value)
         except:
