@@ -11,6 +11,10 @@ nose = "*"
 python-dateutil = "*"
 pytz = "*"
 coveralls = "*"
+wheel = "*"
+twine = "*"
+flask = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"

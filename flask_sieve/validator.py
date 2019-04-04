@@ -9,6 +9,8 @@ import operator
 import requests
 from dateutil.parser import parse as dateparse
 from requests.exceptions import RequestException
+from werkzeug.datastructures import FileStorage
+from PIL import Image
 
 class Validator:
     def __init__(self, app=None, rules={}, request={}):
@@ -62,11 +64,7 @@ class Validator:
         return value in [ 1, '1', 'true', 'yes', 'on', True]
 
     def validate_active_url(self, value, **kwargs):
-        try:
-            requests.options(value)
-            return True
-        except RequestException:
-            return False
+        return self._can_call_with_method(requests.options, value)
 
     def validate_after(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='after')
@@ -100,10 +98,10 @@ class Validator:
     def validate_array(self, value, **kwargs):
         try:
             return isinstance(ast.literal_eval(str(value)), list)
-        except Exception:
+        except (ValueError, SyntaxError):
             return False
 
-    def validate_bail(**kwargs):
+    def validate_bail(self, **kwargs):
         return True
 
     def validate_before(self, value, params, **kwargs):
@@ -128,11 +126,7 @@ class Validator:
         return value == self._attribute_value(attribute + '_confirmation')
 
     def validate_date(self, value, **kwargs):
-        try:
-            dateparse(value)
-            return True
-        except (ValueError, TypeError):
-            return False
+        return self._can_call_with_method(dateparse, value)
 
     def validate_date_equals(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='date_equals')
@@ -159,8 +153,17 @@ class Validator:
         value_len = len(str(value).replace('.', ''))
         return is_numeric and lower <= value_len and value_len <= upper
 
-    def validate_dimensions(self, value, **kwargs):
-        return False
+    def validate_dimensions(self, value, params, **kwargs):
+        self._assert_params_size(size=1, params=params, rule='dimensions')
+        if not self.validate_file(value):
+            return False
+        try:
+            image = Image.open(value.filename)
+            w, h = image.size
+            image.close()
+            return ('%dx%d' % (w, h)) == params[0]
+        except Exception:
+            return False
 
     def validate_distinct(self, value, **kwargs):
         try:
@@ -168,7 +171,7 @@ class Validator:
             if not isinstance(lst, list):
                 return False
             return len(set(lst)) == len(lst)
-        except Exception:
+        except (ValueError, SyntaxError):
             return False
 
     def validate_email(self, value, **kwargs):
@@ -181,10 +184,12 @@ class Validator:
         return False
 
     def validate_file(self, value, **kwargs):
-        return False
+        return isinstance(value, FileStorage)
 
-    def validate_filled(self, value, **kwargs):
-        return False
+    def validate_filled(self, value, attribute, **kwargs):
+        if self.validate_present(attribute):
+            return self.validate_required(value, attribute, nullable)
+        return True
 
     def validate_gt(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='gt')
@@ -199,7 +204,10 @@ class Validator:
         return value >= upper
 
     def validate_image(self, value, **kwargs):
-        return False
+        if not self.validate_file(value):
+            return False
+        ext = value.filename.split('.')[-1]
+        return ext in ['jpg', 'jpeg', 'gif', 'png', 'tiff', 'tif']
 
     def validate_in(self, value, params, **kwargs):
         return value in params
@@ -210,7 +218,7 @@ class Validator:
         try:
             lst = ast.literal_eval(str(other_value))
             return value in lst
-        except Exception:
+        except (ValueError, SyntaxError):
             return False
 
     def validate_integer(self, value, **kwargs):
@@ -288,11 +296,7 @@ class Validator:
         return pattern.match(value) is not None
 
     def validate_json(self, value, **kwargs):
-        try:
-            json.loads(value)
-            return True
-        except Exception as e:
-            return False
+        return self._can_call_with_method(json.loads, value)
 
     def validate_lt(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lt')
@@ -357,7 +361,7 @@ class Validator:
     def validate_required(self, value, attribute, nullable, **kwargs):
         if not value and not nullable:
             return False
-        return self.validate_present(value=value, attribute=attribute)
+        return self.validate_present(attribute)
 
     def validate_required_if(self, value, attribute, params, nullable, **kwargs):
         self._assert_params_size(size=2, params=params, rule='required_if')
@@ -445,17 +449,22 @@ class Validator:
         return pattern.match(value) is not None
 
     def validate_uuid(self, value, **kwargs):
-        if not self.validate_string(value):
-            return False
         return re.match(
             r'^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$',
-            value.lower()
+            str(value).lower()
         ) is not None
 
     def _compare_dates(self, first, second, comporator):
         try:
             return comporator(dateparse(first), dateparse(second))
         except Exception:
+            return False
+
+    def _can_call_with_method(self, method, value):
+        try:
+            self._assert_with_method(method, value)
+            return True
+        except:
             return False
 
     def _has_rule(self, rules, rule_name):
@@ -502,9 +511,3 @@ class Validator:
                 (method.__name__, str(value))
             )
 
-    def _can_call_with_method(self, method, value):
-        try:
-            self._assert_with_method(method, value)
-            return True
-        except:
-            return False

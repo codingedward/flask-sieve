@@ -2,11 +2,18 @@ import json
 import unittest
 from flask_sieve.parser import Parser
 from flask_sieve.validator import Validator
+from werkzeug.datastructures import FileStorage
 
 class TestValidator(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()
         self.validator = Validator()
+        self.stream = open('tests/files/image.png')
+        self.image_file = FileStorage(
+            stream=self.stream,
+            filename='tests/files/image.png',
+            name='image'
+        )
 
     def test_validates_active_url(self):
         self.assert_passes(
@@ -247,6 +254,20 @@ class TestValidator(unittest.TestCase):
             request={'field': '3.142'}
         )
 
+    def test_validates_dimensions(self):
+        self.assert_passes(
+            rules={'field': 'dimensions:1x1'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'dimensions:2x1'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'dimensions:2x1'},
+            request={'field': 'hi'}
+        )
+
     def test_validates_distinct(self):
         self.assert_passes(
             rules={'field': 'distinct'},
@@ -279,6 +300,16 @@ class TestValidator(unittest.TestCase):
             request={'field': 'hi there'}
         )
 
+    def test_validates_file(self):
+        self.assert_passes(
+            rules={'field': 'file'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'file'},
+            request={'field': 'hi'}
+        )
+
     def test_validates_gt(self):
         self.assert_passes(
             rules={'field': 'gt:field_2'},
@@ -305,6 +336,20 @@ class TestValidator(unittest.TestCase):
         self.assert_fails(
             rules={'field': 'gte:field_2'},
             request={'field': 1, 'field_2': 10}
+        )
+
+    def test_validates_image(self):
+        self.assert_passes(
+            rules={'field': 'image'},
+            request={'field': self.image_file}
+        )
+        self.assert_fails(
+            rules={'field': 'image'},
+            request={'field': 1}
+        )
+        self.assert_fails(
+            rules={'field': 'image'},
+            request={}
         )
 
     def test_validates_in(self):
@@ -738,7 +783,7 @@ class TestValidator(unittest.TestCase):
             request={'field': '06d007b0-5608-11e9-8647-d663bd873d93'}
         )
         self.assert_fails(
-            rules={'field': 'uuid'},
+            rules={'field': 'uuid|bail'},
             request={'field': '06d007b0-560647-d663bd873d93'}
         )
 
@@ -755,6 +800,9 @@ class TestValidator(unittest.TestCase):
         p.set_rules(rules)
         v.set_rules(p.parsed_rules())
         self.assertTrue(v.passes() if passes else v.fails())
+
+    def tearDown(self):
+        self.stream.close()
 
 
 if __name__ == '__main__':
