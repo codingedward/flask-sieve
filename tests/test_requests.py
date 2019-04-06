@@ -62,9 +62,8 @@ class TestRequests(unittest.TestCase):
     def test_form_request_fails(self):
         request = FormMockRequest(self.invalid_data)
         form_request = TestFormRequest(request)
-        with self.assertRaises(ValidationException) as context:
+        with self.assertRaises(ValidationException):
             form_request.validate()
-        self.assertIn('at least 6 characters', str(context.exception))
 
     def test_form_request_passes(self):
         request = FormMockRequest(self.valid_data)
@@ -74,9 +73,8 @@ class TestRequests(unittest.TestCase):
     def test_json_request_fails(self):
         request = JsonMockRequest(self.invalid_data)
         json_request = TestJsonRequest(request=request)
-        with self.assertRaises(ValidationException) as context:
+        with self.assertRaises(ValidationException):
             json_request.validate()
-        self.assertIn('at least 6 characters', str(context.exception))
 
     def test_json_request_passes(self):
         request = JsonMockRequest(self.valid_data)
@@ -85,6 +83,5 @@ class TestRequests(unittest.TestCase):
             
     def test_json_request_checks_is_json(self):
         request = FormMockRequest(self.invalid_data)
-        with self.assertRaises(ValidationException) as context:
+        with self.assertRaises(ValidationException):
             json_request = TestJsonRequest(request=request)
-        self.assertIn('Request must be valid JSON', str(context.exception))
