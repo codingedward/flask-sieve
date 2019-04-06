@@ -26,7 +26,8 @@ class Translator:
             for validation in validations:
                 if not validation['is_valid']:
                     translated.append(self._translate_validation(validation))
-            error_messages[attribute] = translated
+            if len(translated):
+                error_messages[attribute] = translated
         return error_messages
 
     def _translate_validation(self, validation):

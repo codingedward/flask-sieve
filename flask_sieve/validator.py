@@ -1,6 +1,8 @@
+from functools import wraps
 from flask_sieve.parser import Parser
 from flask_sieve.translator import Translator
 from flask_sieve.rules_processor import RulesProcessor
+
 
 class Validator:
     def __init__(self, request=None, rules=None):
@@ -29,3 +31,13 @@ class Validator:
         self._translator.set_validations(self._processor.validations())
         return self._translator.translated_errors()
 
+
+def validate(Request):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            req = Request()
+            req.validate()
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator

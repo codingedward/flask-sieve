@@ -4,6 +4,7 @@ from werkzeug.datastructures import FileStorage
 from flask_sieve.parser import Parser
 from flask_sieve.rules_processor import RulesProcessor
 
+
 class TestRulesProcessor(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()

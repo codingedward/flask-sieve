@@ -1,6 +1,7 @@
 """
 """
 
+
 class Parser:
     def __init__(self, rules=None):
         self._rules = rules or {}

@@ -12,6 +12,7 @@ from dateutil.parser import parse as dateparse
 from werkzeug.datastructures import FileStorage
 from PIL import Image
 
+
 class RulesProcessor:
     def __init__(self, app=None, rules=None, request=None):
         self._app = app
