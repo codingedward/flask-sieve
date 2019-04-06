@@ -32,7 +32,6 @@ class RulesProcessor:
         for attribute, rules in self._rules.items():
             should_bail = self._has_rule(rules, 'bail')
             nullable = self._has_rule(rules, 'nullable')
-            required = self._has_rule(rules, 'required')
             validations = []
             for rule in rules:
                 handler = self._get_rule_handler(rule['name'])

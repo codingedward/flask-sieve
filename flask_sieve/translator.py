@@ -53,10 +53,12 @@ class Translator:
         messages.update(self._custom_rule_messages)
         return messages
 
-    def _extract_message_fields(self, message):
+    @staticmethod
+    def _extract_message_fields(message):
         return re.findall(':\w+', message)
 
-    def _zip_fields_to_params(self, params, fields):
+    @staticmethod
+    def _zip_fields_to_params(params, fields):
         zipped = {}
         for field in fields:
             if field == ':attribute':
