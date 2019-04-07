@@ -3,3 +3,5 @@
 .*.swo
 .*.swp
 .coverage
+docs/build
+.DS_Store
