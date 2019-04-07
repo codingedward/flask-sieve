@@ -9,9 +9,10 @@ import json
 import pytz
 import operator
 import requests
+
+from PIL import Image
 from dateutil.parser import parse as dateparse
 from werkzeug.datastructures import FileStorage
-from PIL import Image
 
 
 class RulesProcessor:
@@ -242,7 +243,7 @@ class RulesProcessor:
         if not self.validate_file(value):
             return False
         ext = value.filename.split('.')[-1]
-        return ext in ['jpg', 'jpeg', 'gif', 'png', 'tiff', 'tif']
+        return ext in ['jpg', 'jpeg', 'gif', 'png', 'bmp', 'svg', 'tiff', 'tif']
 
     @staticmethod
     def validate_in(value, params, **kwargs):

@@ -1,4 +1,5 @@
 from functools import wraps
+
 from flask_sieve.parser import Parser
 from flask_sieve.translator import Translator
 from flask_sieve.rules_processor import RulesProcessor

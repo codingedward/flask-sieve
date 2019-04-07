@@ -1,5 +1,5 @@
-from functools import wraps
 from flask import request as flask_request
+
 from flask_sieve.validator import Validator
 from flask_sieve.exceptions import ValidationException
 
@@ -17,7 +17,8 @@ class FormRequest:
             raise ValidationException(self._validator.messages())
         return True
 
-    def _request_to_dict(self, request):
+    @staticmethod
+    def _request_to_dict(request):
         dict_request = {}
         dict_request.update(request.form.to_dict(flat=True))
         dict_request.update(request.files.to_dict(flat=True))

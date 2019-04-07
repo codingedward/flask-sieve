@@ -3,14 +3,8 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
-#services:
-# - postgresql
 install:
   - pip install -r requirements.txt
-#before_script:
-#  - psql -c 'create database db_test;' -U postgres
-#- psql -c "create user foo with password 'bar';" -U postgres
-# run tests
 script:
   - nosetests --with-coverage --cover-package flask_sieve
 after_success: 

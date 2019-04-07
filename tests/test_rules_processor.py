@@ -1,6 +1,8 @@
 import json
 import unittest
+
 from werkzeug.datastructures import FileStorage
+
 from flask_sieve.parser import Parser
 from flask_sieve.rules_processor import RulesProcessor
 

@@ -3,10 +3,11 @@
 
 from setuptools import setup
 
+
 setup(
     name='flask-sieve',
     description='A Laravel inspired requests validator for Flask',
-    version='0.0.1.dev0',
+    version='0.0.2.dev0',
     url='https://github.com/codingedward/flask-sieve',
     license='Apache 2.0',
     author='Edward Njoroge',
@@ -33,5 +34,6 @@ setup(
         'Source': 'https://github.com/codingedward/flask-sieve/',
         'Tracker': 'https://github.com/codingedward/flask-sieve/issues',
     },
-    python_requires='>= 2.7'
+    python_requires='>= 2.7',
+    zip_safe=False
 )

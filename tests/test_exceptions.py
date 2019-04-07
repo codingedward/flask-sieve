@@ -1,5 +1,7 @@
 import unittest
-from flask import jsonify, Flask
+
+from flask import Flask
+
 from flask_sieve.exceptions import ValidationException, register_error_handler
 
 class MockApp:

@@ -1,4 +1,5 @@
 import unittest
+
 from flask_sieve.validator import Validator
 
 

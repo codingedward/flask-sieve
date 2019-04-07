@@ -1,5 +1,5 @@
-import json
 import unittest
+
 from werkzeug.datastructures import MultiDict
 
 from flask_sieve.requests import FormRequest, JsonRequest
@@ -80,8 +80,8 @@ class TestRequests(unittest.TestCase):
         request = JsonMockRequest(self.valid_data)
         json_request = TestJsonRequest(request=request)
         self.assertTrue(json_request.validate())
-            
+
     def test_json_request_checks_is_json(self):
         request = FormMockRequest(self.invalid_data)
         with self.assertRaises(ValidationException):
-            json_request = TestJsonRequest(request=request)
+            TestJsonRequest(request=request)

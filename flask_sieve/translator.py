@@ -1,4 +1,5 @@
 import re
+
 from flask_sieve.lang.en import rule_messages
 
 
