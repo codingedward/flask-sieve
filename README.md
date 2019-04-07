@@ -2,6 +2,8 @@
 [![Build Status](https://travis-ci.org/codingedward/flask-sieve.svg?branch=master)](https://travis-ci.org/codingedward/flask-sieve)
 [![Coverage Status](https://coveralls.io/repos/github/codingedward/flask-sieve/badge.svg?branch=master)](https://coveralls.io/github/codingedward/flask-sieve?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/041c02c078b649a98b5c8c58bd8fd015)](https://www.codacy.com/app/codingedward/flask-sieve?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codingedward/flask-sieve&amp;utm_campaign=Badge_Grade)
+[![Python Badge](https://img.shields.io/badge/python-2.7%20%7C%203.4%20%7C%203.5%20%7C%203.6%20%7C%203.7-blue.svg)](https://pypi.org/project/flask-sieve/)
+
 
 A Laravel inspired requests validator for Flask.
 

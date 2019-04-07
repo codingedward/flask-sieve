@@ -14,7 +14,7 @@ coveralls = "*"
 wheel = "*"
 twine = "*"
 flask = "*"
-pillow = "*"
+pillow = "==5.4.1"
 
 [requires]
 python_version = "3.7"
