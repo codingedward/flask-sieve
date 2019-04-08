@@ -50,9 +50,9 @@ from flask_sieve import FormRequest
 class RegisterRequest(FormRequest):
     def rules(self):
         return {
-            'email': 'required|email',
-            'username': 'required|string|min:6',
-            'password': 'required|min:6|confirmed',
+            'email': ['required', 'email'],
+            'username': ['required', 'string', 'min:6'],
+            'password': ['required', 'min:6', 'confirmed']
         }
 
 ```
@@ -80,9 +80,10 @@ app.run()
 
 If the validation fails, the proper response is automatically generated. 
 
+
 ## Documentation
 
-For more information, kindly visit the documentation hosted [here](https://flask-sieve.readthedocs.io/en/latest/).
+Find the documentation [here](https://flask-sieve.readthedocs.io/en/latest/).
 
 
 ## License (BSD-2)
@@ -94,4 +95,3 @@ Copyright © 2019 Edward Njoroge
 All rights reserved.
 
 Find a copy of the License [here](https://github.com/codingedward/flask-sieve/blob/master/LICENSE.txt).
-ind a copy of the License [here](https://github.com/codingedward/flask-sieve/blob/master/LICENSE.txt).

@@ -29,6 +29,9 @@ class RulesProcessor:
     def fails(self):
         return not self.passes()
 
+    def custom_handlers(self):
+        return self._custom_handlers
+
     def passes(self):
         passes = True
         self._attributes_validations = {}
@@ -68,9 +71,18 @@ class RulesProcessor:
     def set_request(self, request):
         self._request = request
 
-    def register_rule_handler(self, handler, message):
+    def register_rule_handler(self, handler, message, params_count=0):
+        # add a params count check wrapper
+        def checked_handler(*args, **kwargs):
+            self._assert_params_size(
+                size=params_count,
+                params=kwargs['params'],
+                rule=('custom rule %s' % (handler.__name__,))
+            )
+            return handler(*args, **kwargs)
+
         self._custom_handlers[handler.__name__] = {
-            'handler': handler,
+            'handler': checked_handler,
             'message': message or ('%s check failed' % (handler.__name__,))
         }
 
@@ -539,7 +551,7 @@ class RulesProcessor:
             return float(value)
         elif value_type == 'file':
             value.seek(0, os.SEEK_END)
-            return valuep.tell()
+            return round(value.tell() /  1024.0, 0)
         return len(str(value))
 
     def _get_type(self, value, rules=None):

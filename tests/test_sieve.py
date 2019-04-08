@@ -2,13 +2,14 @@ import unittest
 
 from flask import Flask
 
-from flask_sieve.exceptions import ValidationException, register_error_handler
+from flask_sieve import Sieve
+from flask_sieve.exceptions import ValidationException
 
 
-class TestErrorHandler(unittest.TestCase):
-    def test_error_handler(self):
+class TestSieve(unittest.TestCase):
+    def test_registers_error_handler(self):
         app = Flask(__name__)
-        register_error_handler(app)
+        Sieve(app)
         self.assertIn(ValidationException, app.error_handler_spec[None][None])
         errors = {'field': 'Test error'}
 

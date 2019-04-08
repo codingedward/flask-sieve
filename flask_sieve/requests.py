@@ -11,6 +11,7 @@ class FormRequest:
             rules=self.rules(),
             request=self._request_to_dict(request)
         )
+        self._validator.set_custom_messages(self.messages())
 
     def validate(self):
         if self._validator.fails():
@@ -24,7 +25,9 @@ class FormRequest:
         dict_request.update(request.files.to_dict(flat=True))
         return dict_request
 
-
+    @staticmethod
+    def messages():
+        return {}
 
 class JsonRequest(FormRequest):
     def __init__(self, request=None):

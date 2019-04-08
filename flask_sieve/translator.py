@@ -4,15 +4,15 @@ from flask_sieve.lang.en import rule_messages
 
 
 class Translator:
-    def __init__(self, validations=None, custom_attribute_messages=None,
-            custom_rules_messages=None):
+    def __init__(self, validations=None, custom_messages=None,
+            handler_messages=None):
         self._validations = validations or {}
-        self._custom_rule_messages = custom_rules_messages or {}
-        self._custom_attribute_messages = custom_attribute_messages or {}
+        self._custom_messages = custom_messages or {}
+        self._handler_messages = handler_messages or {}
         self._size_rules = ['between', 'gt', 'gte', 'lt', 'lte', 'max', 'min', 'size']
 
-    def set_field_messages(self, messages):
-        self._field_messages = messages
+    def set_custom_messages(self, messages):
+        self._custom_messages = messages
 
     def set_handler_messages(self, messages):
         self._handler_messages = messages
@@ -26,7 +26,11 @@ class Translator:
             translated = []
             for validation in validations:
                 if not validation['is_valid']:
-                    translated.append(self._translate_validation(validation))
+                    custom_message_key = validation['attribute'] + '.' + validation['rule']
+                    if custom_message_key in self._custom_messages:
+                        translated.append(self._custom_messages[custom_message_key])
+                    else:
+                        translated.append(self._translate_validation(validation))
             if len(translated):
                 error_messages[attribute] = translated
         return error_messages
@@ -43,16 +47,15 @@ class Translator:
         )
         for field in message_fields:
             if field == ':attribute':
-                value = validation['attribute']
+                message = message.replace(field, validation['attribute'])
             else:
-                value = fields_to_params[field]
-            message = message.replace(field, value)
+                message = message.replace(field, fields_to_params[field])
         return message
 
     def _get_all_messages(self):
         messages = {}
         messages.update(rule_messages)
-        messages.update(self._custom_rule_messages)
+        messages.update(self._handler_messages)
         return messages
 
     @staticmethod

@@ -51,9 +51,9 @@ from flask_sieve import FormRequest
 class RegisterRequest(FormRequest):
     def rules(self):
         return {
-            'email': 'required|email',
-            'username': 'required|string|min:6',
-            'password': 'required|min:6|confirmed',
+            'email': ['required', 'email'],
+            'username': ['required', 'string', 'min:6'],
+            'password': ['required', 'min:6', 'confirmed']
         }
 
 ```
@@ -111,8 +111,8 @@ Sometimes you may wish to stop running validation rules on an attribute after th
 # ...
 def rules(self):
     return {
-        'title': 'bail|string|required|max:255',
-        'body': 'required',
+        'title': ['bail', 'string', 'required', 'max:255'],
+        'body': ['required'],
     }
 # ...
 ```
@@ -130,8 +130,8 @@ If your HTTP request contains "nested" parameters, you may specify them in your 
 # ...
 def rules(self):
     return {
-        'author.name': 'required',
-        'author.description': 'required',
+        'author.name': ['required'],
+        'author.description': ['required'],
     }
 # ...
 ```
@@ -153,9 +153,9 @@ class RegisterRequest(FormRequest):
 
     def rules(self):
         return {
-            'email': 'required|email',
-            'username': 'required|string|min:6',
-            'password': 'required|min:6|confirmed',
+            'email': ['required', 'email'],
+            'username': ['required', 'string', 'min:6'],
+            'password': ['required', 'min:6', 'confirmed',]
         }
 
 ```
@@ -174,7 +174,7 @@ The field under validation must be active and responds to a request from `reques
 
 The field under validation must be a value after a given date. The dates will be passed into the `parse` function from `python-dateutil` Python
 ```python
-'start_date': 'required|date|after:2018-02-10'
+'start_date': ['required', 'date', 'after:2018-02-10']
 ```
 
 
@@ -247,7 +247,7 @@ The field under validation must have a length between the given _min_ and _max_.
 The file under validation must be an image meeting the dimension constraints specified as `WidthxHeight`
 
 ```python
-'avatar': 'dimensions:200x200'
+'avatar': ['dimensions:200x200']
 ```
 
 #### distinct
@@ -255,7 +255,7 @@ The file under validation must be an image meeting the dimension constraints spe
 When working with arrays, the field under validation must not have any duplicate values.
 
 ```python
-'foo': 'distinct'
+'foo': ['distinct']
 ```
 
 #### email
@@ -286,7 +286,7 @@ The file under validation must be an image (jpeg, png, bmp, gif, tif, or svg)
 
 The field under validation must be included in the given list of values.
 
-#### in_array:_anotherfield_.*
+#### in_array:_anotherfield_
 
 The field under validation must exist in _anotherfield_'s values.
 
@@ -327,7 +327,7 @@ The field under validation must be less than or equal to a maximum _value_. Stri
 The file under validation must match one of the given MIME types:
 
 ```python
-'video': 'mime_types:video/avi,video/mpeg,video/quicktime'
+'video': ['mime_types:video/avi,video/mpeg,video/quicktime']
 ```
 
 To determine the MIME type of the uploaded file, the file's contents will be read and the framework will attempt to guess the MIME type, which may be different from the client provided MIME type.
@@ -344,7 +344,7 @@ The field under validation must not be included in the given list of values.
 
 The field under validation must not match the given regular expression.
 
-**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': r'not_regex:^.+@.+$/i'`.
+**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': [r'not_regex:^.+@.+$/i']`.
 
 #### nullable
 
@@ -362,7 +362,7 @@ The field under validation must be present in the input data but can be empty.
 
 The field under validation must match the given regular expression.
 
-**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': r'regex:^.+@.+$/i'`.
+**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': [r'regex:^.+@.+$/i']`.
 
 #### required
 

@@ -29,9 +29,9 @@ class TestFormRequest(FormRequest):
     @staticmethod
     def rules():
         return {
-            'name': 'required|string|min:6',
-            'email': 'required|email',
-            'password': 'required|min:8|confirmed'
+            'name': ['required', 'string', 'min:6'],
+            'email':['required', 'email'],
+            'password': ['required', 'min:8', 'confirmed']
         }
 
 
@@ -39,9 +39,9 @@ class TestJsonRequest(JsonRequest):
     @staticmethod
     def rules():
         return {
-            'name': 'required|string|min:6',
-            'email': 'required|email',
-            'password': 'required|min:8|confirmed'
+            'name': ['required', 'string', 'min:6'],
+            'email': ['required', 'email'],
+            'password': ['required', 'min:8', 'confirmed']
         }
 
 

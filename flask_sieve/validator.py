@@ -19,6 +19,25 @@ class Validator:
     def set_request(self, request):
         self._request = request
 
+    def set_custom_messages(self, messages):
+        self._translator.set_custom_messages(messages)
+
+    def register_rule_handler(self, handler, message, params_count=0):
+        if not handler.__name__.startswith('validate_'):
+            raise ValueError(
+                'Rule handlers must start with "validate_" name, %s provided'
+                % (handler.__name__)
+            )
+        self._processor.register_rule_handler(
+            handler=handler,
+            message=message,
+            params_count=params_count
+        )
+        handler_messages = {}
+        for handler_name, handler_dict in self._processor.custom_handlers().items():
+            handler_messages[handler_name[len('validate_'):]] = handler_dict['message']
+        self._translator.set_handler_messages(handler_messages)
+
     def fails(self):
         return not self.passes()
 

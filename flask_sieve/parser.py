@@ -13,9 +13,15 @@ class Parser:
         parsed_rules = {}
         for attribute, rules in self._rules.items():
             attribute_rules = []
-            for rule in rules.split('|'):
+            for rule in rules:
                 rule_name = rule_params = None
-                if ':' in rule:
+                if rule.startswith('regex'):
+                    rule_name = 'regex'
+                    rule_params = [rule[len('regex:'):]]
+                elif rule.startswith('not_regex'):
+                    rule_name = 'not_regex'
+                    rule_params = [rule[len('not_regex:'):]]
+                elif ':' in rule:
                     rule_name, rule_params = rule.split(':')
                     rule_params = rule_params.split(',')
                 else:

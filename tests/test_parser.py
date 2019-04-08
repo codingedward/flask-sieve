@@ -9,9 +9,9 @@ class TestParser(unittest.TestCase):
 
     def test_parses_rules_correctly(self):
         rules = {
-            'name': 'required|string|min:6',
-            'email': 'required|email|in:a@b.com,b@c.com',
-            'password': 'required|min:8|confirmed'
+            'name': ['required', 'string', 'min:6'],
+            'email': ['required', 'email', 'in:a@b.com,b@c.com'],
+            'password': ['required', 'min:8', 'confirmed']
         }
         self._parser.set_rules(rules)
         parsed_rules = self._parser.parsed_rules()
