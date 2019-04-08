@@ -1,15 +1,13 @@
-"""
-"""
-
 from setuptools import setup
 
 
 setup(
     name='flask-sieve',
     description='A Laravel inspired requests validator for Flask',
-    version='0.0.2.dev0',
+    long_description='Find the documentation at https://flask-sieve.readthedocs.io/en/latest/',
+    version='1.0.2',
     url='https://github.com/codingedward/flask-sieve',
-    license='Apache 2.0',
+    license='BSD-2',
     author='Edward Njoroge',
     author_email='codingedward@gmail.com',
     maintainer='Edward Njoroge',
@@ -30,7 +28,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    packages=['flask_sieve'],
+    packages=['flask_sieve', 'flask_sieve.lang'],
     project_urls={
         'Funding': 'https://donate.pypi.org',
         'Source': 'https://github.com/codingedward/flask-sieve/',

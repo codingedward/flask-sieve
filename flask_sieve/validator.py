@@ -1,26 +1,33 @@
 from functools import wraps
 
+from flask import request as flask_request
+
 from flask_sieve.parser import Parser
 from flask_sieve.translator import Translator
 from flask_sieve.rules_processor import RulesProcessor
 
 
 class Validator:
-    def __init__(self, request=None, rules=None):
+    def __init__(self, rules=None, request=None, custom_handlers=None):
         self._parser = Parser()
         self._translator = Translator()
         self._processor = RulesProcessor()
         self._rules = rules or {}
-        self._request = request or {}
+        self._custom_handlers = custom_handlers or {}
+        self._request = self._parse_request(request or {})
 
     def set_rules(self, rules):
         self._rules = rules
 
     def set_request(self, request):
-        self._request = request
+        self._request = self._parse_request(request or {})
 
     def set_custom_messages(self, messages):
         self._translator.set_custom_messages(messages)
+
+    def set_custom_handlers(self, handlers):
+        for handler in handlers:
+            self.register_error_handler(**handler)
 
     def register_rule_handler(self, handler, message, params_count=0):
         if not handler.__name__.startswith('validate_'):
@@ -50,6 +57,18 @@ class Validator:
     def messages(self):
         self._translator.set_validations(self._processor.validations())
         return self._translator.translated_errors()
+
+    @staticmethod
+    def _parse_request(request):
+        if isinstance(request, dict):
+            return request
+        # instance of flask.request ...
+        if request.is_json:
+            return request.json
+        dict_request = {}
+        dict_request.update(request.form.to_dict(flat=True))
+        dict_request.update(request.files.to_dict(flat=True))
+        return dict_request
 
 
 def validate(Request):

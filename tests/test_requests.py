@@ -10,20 +10,13 @@ class FormMockRequest:
         data = data or {}
         self.form = MultiDict([(k, v) for k, v in data.items()])
         self.files = MultiDict([])
-
-    @staticmethod
-    def is_json():
-        return False
+        self.is_json = False
 
 
 class JsonMockRequest:
     def __init__(self, data=None):
         self.json = data or {}
-
-    @staticmethod
-    def is_json():
-        return True
-
+        self.is_json = True
 
 class TestFormRequest(FormRequest):
     @staticmethod

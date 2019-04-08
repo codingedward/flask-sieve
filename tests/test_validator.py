@@ -1,7 +1,9 @@
+import json
 import unittest
 
-from flask_sieve.validator import Validator, validate
+from flask import Flask
 
+from flask_sieve.validator import Validator, validate
 
 class TestValidator(unittest.TestCase):
     def setUp(self):
@@ -39,6 +41,26 @@ class TestValidator(unittest.TestCase):
         self.assertTrue(self._validator.fails())
         self.assertIn('required when', str(self._validator.messages()))
 
+    def test_handles_different_types_of_requests(self):
+        class MockMultiDict:
+            def to_dict(self, flat=None):
+                return {'field': 1}
+
+        class MockRequest:
+            def __init__(self):
+                self.is_json = True
+                self.form = self.files = MockMultiDict()
+                self.json = self.form.to_dict()
+
+
+        request = MockRequest()
+        validator = Validator(request=request, rules={'field': ['numeric']})
+        self.assertTrue(validator.passes())
+        request.is_json = False
+        validator.set_request(request)
+        self.assertTrue(validator.passes())
+
+
     def test_validate_decorator(self):
         class FailingRequest:
             def validate(self):
@@ -66,7 +88,6 @@ class TestValidator(unittest.TestCase):
             'email.required': 'Kindly provide the email',
             'email.email': 'Whoa! That is not valid',
         })
-
         self.assertTrue(self._validator.fails())
         self.assertDictEqual({
             'email': [

@@ -9,9 +9,9 @@
 <img src="https://raw.githubusercontent.com/codingedward/flask-sieve/master/docs/source/_static/sieve.png" style="width: 40%; float: right; transform: rotate(-15deg)" />
 A requests validator for Flask inspired by Laravel.
 
-This package provides an approach to validating incoming requests using powerful and composable rules. 
+This package provides an approach to validating incoming requests using powerful and composable rules.
 
-## Installing
+## Installation
 To install and update using [pip](https://pip.pypa.io/en/stable/quickstart/).
 ```shell
 pip install flask-sieve
@@ -21,25 +21,32 @@ pip install flask-sieve
 
 To learn about these powerful validation features, let's look at a complete example of validating a form and displaying the error messages back to the user.
 
-### Example App
+### Auto-validation of Requests
 
-Suppose you had a simple application with an endpoint to register a user. We are going to create validations for this endpoint.
+Suppose you had a simple application with an endpoint to register a user.
+
+```shell
+flask-app/
+  __init__.py
+  app.py
+  requests.py
+```
+
+We are going to create validations for this endpoint.
 
 ```python
 # app.py
 
-from flask import Flask
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route('/', methods=('POST'))
+@app.route('/', methods=('POST',))
 def register():
-    return 'Registered!'
+    return jsonify({'message': 'Registered!'}), 200
 
 app.run()
 ```
-
-### The Validation Logic
 
 To validate incoming requests to this endpoint, we create a class with validation rules of registering a user as follows:
 
@@ -71,19 +78,94 @@ from .requests import RegisterRequest
 app = Flask(__name__)
 Sieve(app)
 
-@app.route('/', methods=('POST'))
+@app.route('/', methods=('POST',))
 @validate(RegisterRequest)
 def register():
-    return 'Registered!'
+    return jsonify({'message': 'Registered!'}), 200
 
 app.run()
 ```
 
-If the validation fails, the proper response is automatically generated. 
+Note the initialization of `Sieve` with the application instance. This is necessary
+for setting up the necessary mechanism to autorespond with the necessary error messages.
 
-## Error Messages Format
+### Manual Validation of Requests
 
-The following is the foramt of the generated response in case of an error:
+Sometimes you might not wish to rely on the default auto-response made by Flask-Sieve. In this case,
+you can create an instance of `Validator` and set the rules yourself.
+
+Using the same application shown above, this is how you would go about it:
+
+```python
+# app.py
+
+from flask import Flask, jsonify, request
+from flask_sieve import Sieve, Validator
+
+app = Flask(__name__)
+Sieve(app)
+
+@app.route('/', methods=('POST',))
+def register():
+    rules = {
+        'email': ['required', 'email'],
+        'avatar': ['image', 'dimensions:200x200'],
+        'username': ['required', 'string', 'min:6'],
+    }
+    validator = Validator(rules=rules, request=request)
+    if validator.passes():
+        return jsonify({'message': 'Registered!'}), 200
+    return jsonify(validator.messages()), 400
+
+app.run()
+```
+
+This would allow you to make the correct response in cases where you would not want to rely
+on the response format provided by Flask-Sieve.
+
+
+## Digging Deeper
+
+Flask-Sieve supports various approaches to validating requests. Here we will make an in-depth
+tour of the features offered.
+
+#### Form vs JSON Requests
+To address the differences in requests with form requests (with `Content-Type: 'multipart/form-data'`)
+and JSON requests (with `Content-Type: 'application/json'`) Flask-Sieve supports two kinds of auto-validating
+requests:
+
+##### Form Requests
+To validate form requests, you have to inherit from `FormRequest` on the validation request. Example:
+
+```python
+from flask_sieve import FormRequest
+
+class PostRequest(FormRequest):
+    def rules(self):
+        return {
+            'image': ['file'],
+            'username': ['required', 'string', 'min:6'],
+        }
+```
+
+##### JSON Requests
+To validate this format you will have to inherit from `JsonRequest`.
+Before validating the request, this checks that the request is indeed a JSON request (with `Content-Type: 'application/json'`).
+
+```python
+from flask_sieve import JsonRequest
+
+class PostRequest(JsonRequest):
+    def rules(self):
+        return {
+            'email': ['required', 'email'],
+        }
+```
+
+
+### Error Messages Format
+
+In case validation fails to passThe following is the format of the generated response in case of an error:
 ```js
 {
     success: 'False',
@@ -101,25 +183,24 @@ The following is the foramt of the generated response in case of an error:
 ```
 All validation error messages will have a HTTP error status code 400.
 
-## Stopping On First Validation Failure
+### Stopping on First Validation Failure
 
 Sometimes you may wish to stop running validation rules on an attribute after the first validation failure. To do so, assign the `bail` rule to the attribute:
 
 ```python
 # requests.py
 
-# ...
+# ... omitted for brevity ...
 def rules(self):
     return {
-        'title': ['bail', 'string', 'required', 'max:255'],
         'body': ['required'],
+        'title': ['bail', 'string', 'required', 'max:255'],
     }
-# ...
 ```
 
 In this example, if the `string` rule on the `title` attribute fails, the `max` rule will not be checked. Rules will be validated in the order they are assigned.
 
-## A Note On Nested Attributes
+### A Note on Nested Attributes
 
 If your HTTP request contains "nested" parameters, you may specify them in your validation rules using "dot" syntax:
 
@@ -127,18 +208,19 @@ If your HTTP request contains "nested" parameters, you may specify them in your 
 ```python
 # requests.py
 
-# ...
+# ... omitted for brevity ...
+
 def rules(self):
     return {
         'author.name': ['required'],
         'author.description': ['required'],
     }
-# ...
 ```
 
-## Customizing The Error Messages
+### Customizing the Error Messages
 
 You may customize the error messages used by the form request by overriding the `messages` method. This method should return an array of attribute / rule pairs and their corresponding error messages:
+
 ```python
 # requests.py
 
@@ -157,9 +239,87 @@ class RegisterRequest(FormRequest):
             'username': ['required', 'string', 'min:6'],
             'password': ['required', 'min:6', 'confirmed',]
         }
-
 ```
 
+### Adding Custom Rules
+
+Besides the rules offered by default, you can extend the validator with your own custom rules. You can
+do this either when defining the Form/JSON Request class or when you instantiate a `Validator`.
+
+#### Custom Rule Handler
+
+A rule handler is a predicate (a method returning either `True` or `False`) that you can use to add
+your validations to Flask-Sieve.
+
+This method must satisfy the following conditions:
+- It must start with the `validate_` keyword.
+- It will receive keyword the following keyword parameters:
+    - `value` - the value of the request field being validated.
+    - `attribute` - the field name being validated.
+    - `params` - a list of parameters passed to the rule. For instance, for the inbuilt rule `between:min,max`, the list will be `[min, max]`.
+    - `nullable` - a boolean marking whether this field has been specified as `nullable` or not.
+    - `rules` - a list containing all the rules passed on the field.
+
+**Tip**: In case your handler does not need all these parameters, you can simply ignnore the ones you don't need with `**kwargs`.
+
+For example:
+```python
+def validate_odd(value, **kwargs):
+    return int(value) %  2
+```
+
+#### Custom Rules on Form/JSON Requests
+
+To define a custom rule validator on a Form/JSON Rquest, you will have to provide it in a method named
+`custom_handlers` as follows:
+
+```python
+from flask_sieve import FormRequest
+
+def validate_odd(value, **kwargs):
+    return int(value) % 2
+
+class RegisterRequest(FormRequest):
+
+    # ... omitted for brevity ...
+
+    def custom_handlers(self):
+        return [{
+            'handler': validate_odd,  # the rule handler
+            'message': 'Number must be odd', # the message to display when this rule fails
+            'params_count': 0 # the number of parameters the rule expects
+        }]
+```
+
+#### Custom Rules on `Validator` Instance
+
+To add a custom rule handler to a `Validator` instance, you have will have to use
+`register_custom_handler` method as shown below:
+
+```python
+from flask import Flask, jsonify, request
+from flask_sieve import Sieve, Validator
+
+app = Flask(__name__)
+Sieve(app)
+
+def validate_odd(value, **kwargs):
+    return int(value) % 2
+
+@app.route('/', methods=('POST',))
+def register():
+    rules = {'avatar': ['image', 'dimensions:200x200']}
+    validator = Validator(rules=rules, request=request)
+    validator.register_custom_handler(
+        handler=validate_odd,
+        message='Must be odd',
+        params_count=0
+    )
+    if validator.passes():
+        return jsonify({'message': 'Registered!'}), 200
+    return jsonify(validator.messages()), 400
+
+```
 ## Available Validations
 
 #### accepted
@@ -172,7 +332,7 @@ The field under validation must be active and responds to a request from `reques
 
 #### after:_date_
 
-The field under validation must be a value after a given date. The dates will be passed into the `parse` function from `python-dateutil` Python
+The field under validation must be a value after a given date. The dates will be passed into the `parse` function from [`python-dateutil`](https://pypi.org/project/python-dateutil/) Python
 ```python
 'start_date': ['required', 'date', 'after:2018-02-10']
 ```
@@ -204,11 +364,11 @@ Stop running validation rules after the first validation failure.
 
 #### before:_date_
 
-The field under validation must be a value preceding the given date. The dates will be passed into the Python `python-dateutil` package.
+The field under validation must be a value preceding the given date. The dates will be passed into the Python [`python-dateutil`](https://pypi.org/project/python-dateutil/) package.
 
 #### before\_or\_equal:_date_
 
-The field under validation must be a value preceding or equal to the given date. The dates will be passed into the `parse` function from `python-dateutil` Python package.
+The field under validation must be a value preceding or equal to the given date. The dates will be passed into the `parse` function from [`python-dateutil`](https://pypi.org/project/python-dateutil/) Python package.
 
 #### between:_min_,_max_
 
@@ -224,11 +384,11 @@ The field under validation must have a matching field of `foo_confirmation`. For
 
 #### date
 
-The field under validation must be a valid, non-relative date according to the `parse` function of `python-dateutil`.
+The field under validation must be a valid, non-relative date according to the `parse` function of [`python-dateutil`](https://pypi.org/project/python-dateutil/).
 
 #### date_equals:_date_
 
-The field under validation must be equal to the given date. The dates will be passed into the `parse` function of `python-dateutil`.
+The field under validation must be equal to the given date. The dates will be passed into the `parse` function of `[python-dateutil](https://pypi.org/project/python-dateutil/)`.
 
 #### different:_field_
 
@@ -418,7 +578,7 @@ The field under validation must be a string. If you would like to allow the fiel
 
 #### timezone
 
-The field under validation must be a valid timezone identifier according to the `pytz` Python package.
+The field under validation must be a valid timezone identifier according to the [`pytz`](http://pytz.sourceforge.net/) Python package.
 
 #### url
 
@@ -427,6 +587,10 @@ The field under validation must be a valid URL.
 #### uuid
 
 The field under validation must be a valid RFC 4122 (version 1, 3, 4, or 5) universally unique identifier (UUID).
+
+## Contributions
+
+Contributions and bugfixes are welcome!
 
 ## License (BSD-2)
 
