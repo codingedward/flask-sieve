@@ -43,7 +43,7 @@ app.run()
 To validate incoming requests to this endpoint, we create a class with validation rules of registering a user as follows:
 
 ```python
-# requests.py
+# app_requests.py
 
 from flask_sieve import FormRequest
 
@@ -65,7 +65,7 @@ Now, using this class, we can guard our endpoint using a `validate` decorator.
 
 from flask import Flask
 from flask_sieve import Sieve, validate
-from .requests import RegisterRequest
+from .app_requests import RegisterRequest
 
 app = Flask(__name__)
 Sieve(app)

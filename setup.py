@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(
@@ -28,7 +28,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    packages=['flask_sieve', 'flask_sieve.lang'],
+    packages=find_packages(),
     project_urls={
         'Funding': 'https://donate.pypi.org',
         'Source': 'https://github.com/codingedward/flask-sieve/',

@@ -29,7 +29,7 @@ Suppose you had a simple application with an endpoint to register a user.
 flask-app/
   __init__.py
   app.py
-  requests.py
+  app_requests.py
 ```
 
 We are going to create validations for this endpoint.
@@ -51,7 +51,7 @@ app.run()
 To validate incoming requests to this endpoint, we create a class with validation rules of registering a user as follows:
 
 ```python
-# requests.py
+# app_requests.py
 
 from flask_sieve import FormRequest
 
@@ -62,7 +62,6 @@ class RegisterRequest(FormRequest):
             'username': ['required', 'string', 'min:6'],
             'password': ['required', 'min:6', 'confirmed']
         }
-
 ```
 
 Now, using this class, we can guard our endpoint using a `validate` decorator.
@@ -73,7 +72,7 @@ Now, using this class, we can guard our endpoint using a `validate` decorator.
 
 from flask import Flask
 from flask_sieve import Sieve, validate
-from .requests import RegisterRequest
+from .app_requests import RegisterRequest
 
 app = Flask(__name__)
 Sieve(app)
@@ -188,7 +187,7 @@ All validation error messages will have a HTTP error status code 400.
 Sometimes you may wish to stop running validation rules on an attribute after the first validation failure. To do so, assign the `bail` rule to the attribute:
 
 ```python
-# requests.py
+# app_requests.py
 
 # ... omitted for brevity ...
 def rules(self):
@@ -206,7 +205,7 @@ If your HTTP request contains "nested" parameters, you may specify them in your 
 
 
 ```python
-# requests.py
+# app_requests.py
 
 # ... omitted for brevity ...
 
@@ -222,7 +221,7 @@ def rules(self):
 You may customize the error messages used by the form request by overriding the `messages` method. This method should return an array of attribute / rule pairs and their corresponding error messages:
 
 ```python
-# requests.py
+# app_requests.py
 
 from flask_sieve import FormRequest
 
