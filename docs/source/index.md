@@ -85,8 +85,8 @@ def register():
 app.run()
 ```
 
-Note the initialization of `Sieve` with the application instance. This is necessary
-for setting up the necessary mechanism to autorespond with the necessary error messages.
+Note the initialization of `Sieve` with the application instance. This is required
+for setting up the necessary mechanism to autorespond with the error messages.
 
 ### Manual Validation of Requests
 
@@ -126,7 +126,7 @@ on the response format provided by Flask-Sieve.
 ## Digging Deeper
 
 Flask-Sieve supports various approaches to validating requests. Here we will make an in-depth
-tour of the features offered.
+tour of the functionalities offered.
 
 #### Form vs JSON Requests
 To address the differences in requests with form requests (with `Content-Type: 'multipart/form-data'`)
@@ -164,7 +164,7 @@ class PostRequest(JsonRequest):
 
 ### Error Messages Format
 
-In case validation fails to passThe following is the format of the generated response in case of an error:
+In case validation fails to pass, the following is the format of the generated response:
 ```js
 {
     success: 'False',
@@ -259,7 +259,7 @@ This method must satisfy the following conditions:
     - `nullable` - a boolean marking whether this field has been specified as `nullable` or not.
     - `rules` - a list containing all the rules passed on the field.
 
-**Tip**: In case your handler does not need all these parameters, you can simply ignnore the ones you don't need with `**kwargs`.
+**Tip**: In case your handler does not need all these parameters, you can simply ignore the ones you don't need with `**kwargs`.
 
 For example:
 ```python
@@ -387,7 +387,7 @@ The field under validation must be a valid, non-relative date according to the `
 
 #### date_equals:_date_
 
-The field under validation must be equal to the given date. The dates will be passed into the `parse` function of `[python-dateutil](https://pypi.org/project/python-dateutil/)`.
+The field under validation must be equal to the given date. The dates will be passed into the `parse` function of [python-dateutil](https://pypi.org/project/python-dateutil/).
 
 #### different:_field_
 
@@ -503,8 +503,6 @@ The field under validation must not be included in the given list of values.
 
 The field under validation must not match the given regular expression.
 
-**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': [r'not_regex:^.+@.+$/i']`.
-
 #### nullable
 
 The field under validation may be `None`. This is particularly useful when validating primitive such as strings and integers that can contain `None` values.
@@ -520,8 +518,6 @@ The field under validation must be present in the input data but can be empty.
 #### regex:_pattern_
 
 The field under validation must match the given regular expression.
-
-**Note:** When using the `regex` / `not_regex` patterns, it is necessary to to use python raw strings marked by `r` as shown: `'email': [r'regex:^.+@.+$/i']`.
 
 #### required
 
