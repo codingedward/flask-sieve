@@ -18,6 +18,7 @@ pillow = "==5.4.1"
 recommonmark = "*"
 pallets-sphinx-themes = "*"
 sphinx = "==1.8.5"
+urllib3 = "*"
 
 [requires]
 python_version = "3.7"
