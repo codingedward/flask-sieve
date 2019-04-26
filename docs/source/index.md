@@ -168,7 +168,7 @@ class PostRequest(JsonRequest):
 In case validation fails to pass, the following is the format of the generated response:
 ```js
 {
-    success: 'False',
+    success: False,
     message: 'Validation error',
     errors: {
         'email': [
