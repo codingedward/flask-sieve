@@ -5,4 +5,5 @@
 .coverage
 docs/build
 .DS_Store
-dist/*
+dist/
+build/
