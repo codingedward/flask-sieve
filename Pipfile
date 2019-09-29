@@ -19,6 +19,7 @@ recommonmark = "*"
 pallets-sphinx-themes = "*"
 sphinx = "==1.8.5"
 urllib3 = "*"
+werkzeug = "==0.15.3"
 
 [requires]
 python_version = "3.7"
