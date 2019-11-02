@@ -5,7 +5,7 @@ setup(
     name='flask-sieve',
     description='A Laravel inspired requests validator for Flask',
     long_description='Find the documentation at https://flask-sieve.readthedocs.io/en/latest/',
-    version='1.0.4',
+    version='1.1.0',
     url='https://github.com/codingedward/flask-sieve',
     license='BSD-2',
     author='Edward Njoroge',
@@ -20,12 +20,11 @@ setup(
         'requests',
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
+        'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
@@ -34,6 +33,6 @@ setup(
         'Source': 'https://github.com/codingedward/flask-sieve/',
         'Tracker': 'https://github.com/codingedward/flask-sieve/issues',
     },
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    python_requires='>=3.5',
     zip_safe=False
 )
