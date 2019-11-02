@@ -4,20 +4,20 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-
-[packages]
-requests = "*"
-nose = "*"
-python-dateutil = "*"
-pytz = "*"
 coveralls = "*"
 wheel = "*"
 twine = "*"
+nose = "*"
+sphinx = "==1.8.5"
+pallets-sphinx-themes = "*"
+
+[packages]
+requests = "*"
+python-dateutil = "*"
+pytz = "*"
 flask = "*"
 pillow = "==6.2.0"
 recommonmark = "*"
-pallets-sphinx-themes = "*"
-sphinx = "==1.8.5"
 urllib3 = "*"
 werkzeug = "==0.15.3"
 
