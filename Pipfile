@@ -5,8 +5,6 @@ verify_ssl = true
 
 [dev-packages]
 coveralls = "*"
-wheel = "*"
-twine = "*"
 nose = "*"
 sphinx = "*"
 pallets-sphinx-themes = "*"
