@@ -8,7 +8,7 @@ coveralls = "*"
 wheel = "*"
 twine = "*"
 nose = "*"
-sphinx = "==1.8.5"
+sphinx = "*"
 pallets-sphinx-themes = "*"
 
 [packages]
@@ -16,10 +16,10 @@ requests = "*"
 python-dateutil = "*"
 pytz = "*"
 flask = "*"
-pillow = "==6.2.0"
+pillow = "*"
 recommonmark = "*"
 urllib3 = "*"
-werkzeug = "==0.15.3"
+werkzeug = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "*"
