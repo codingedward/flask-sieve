@@ -866,6 +866,17 @@ class TestRulesProcessor(unittest.TestCase):
             request={'field': 'hi'}
         )
 
+    def test_allows_nullable_fields(self):
+        self.assert_passes(
+            rules={'field': ['integer', 'nullable']},
+            request={}
+        )
+        self.assert_passes(
+            rules={'field': ['string', 'email', 'nullable']},
+            request={}
+        )
+
+
     def test_validates_uuid(self):
         self.assert_passes(
             rules={'field': ['uuid']},

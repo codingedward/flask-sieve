@@ -41,13 +41,18 @@ class RulesProcessor:
                 handler = self._get_rule_handler(rule['name'])
                 value = self._attribute_value(attribute)
                 attr_type = self._get_type(value, rules)
-                is_valid = handler(
-                    value=value,
-                    attribute=attribute,
-                    params=rule['params'],
-                    nullable=nullable,
-                    rules=rules
-                )
+                is_valid = False
+                if value is None and nullable:
+                    is_valid = True
+                else:
+                    is_valid = handler(
+                        value=value,
+                        attribute=attribute,
+                        params=rule['params'],
+                        nullable=nullable,
+                        rules=rules
+                    )
+
                 validations.append({
                     'attribute': attribute,
                     'rule': rule['name'],
