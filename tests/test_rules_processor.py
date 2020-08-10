@@ -11,10 +11,10 @@ class TestRulesProcessor(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()
         self.processor = RulesProcessor()
-        self.stream = open('tests/files/image.png')
+        self.stream = open('tests/files/image.png', 'rb')
         self.image_file = FileStorage(
             stream=self.stream,
-            filename='tests/files/image.png',
+            filename='image.png',
             content_type='image/png',
             name='image'
         )
