@@ -194,9 +194,7 @@ class RulesProcessor:
         if not self.validate_file(value):
             return False
         try:
-            from pprint import pprint
             image = Image.open(value)
-            pprint(image.size)
             w, h = image.size
             value.seek(0)
             return ('%dx%d' % (w, h)) == params[0]
