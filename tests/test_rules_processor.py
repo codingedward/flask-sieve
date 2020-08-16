@@ -283,11 +283,7 @@ class TestRulesProcessor(unittest.TestCase):
         )
         self.assert_fails(
             rules={'field': ['dimensions:2x1']},
-            request={'field': self.invalid_file}
-        )
-        self.assert_fails(
-            rules={'field': ['dimensions:2x1']},
-            request={'field': 'hi'}
+            request={'field': 'not a file'}
         )
 
     def test_validates_distinct(self):
