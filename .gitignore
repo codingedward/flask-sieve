@@ -7,3 +7,5 @@ docs/build
 .DS_Store
 dist/
 build/
+__pycache__/
+venv/
