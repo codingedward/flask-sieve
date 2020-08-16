@@ -3,8 +3,8 @@
 [![](https://readthedocs.org/projects/flask-sieve/badge/?version=latest)](https://flask-sieve.readthedocs.io/en/latest/?badge=latest)
 [![](https://coveralls.io/repos/github/codingedward/flask-sieve/badge.svg?branch=master)](https://coveralls.io/github/codingedward/flask-sieve?branch=master)
 [![](https://api.codacy.com/project/badge/Grade/041c02c078b649a98b5c8c58bd8fd015)](https://www.codacy.com/app/codingedward/flask-sieve?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codingedward/flask-sieve&amp;utm_campaign=Badge_Grade)
-[![](https://pepy.tech/badge/flask-sieve/month)](https://pepy.tech/project/flask-sieve)
-[![](https://img.shields.io/badge/python-2.7%20%7C%203.4%20%7C%203.5%20%7C%203.6%20%7C%203.7-blue.svg)](https://pypi.org/project/flask-sieve/)
+[![](https://pepy.tech/badge/flask-sieve)](https://pepy.tech/project/flask-sieve)
+[![](https://img.shields.io/badge/python-3.5%20%7C%203.6%20%7C%203.7%20%7C%203.8-blue.svg)](https://pypi.org/project/flask-sieve/)
 
 
 <img src="https://raw.githubusercontent.com/codingedward/flask-sieve/master/docs/source/_static/sieve.png" style="width: 40%; float: right; transform: rotate(-15deg)" />

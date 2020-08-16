@@ -6,8 +6,6 @@ verify_ssl = true
 [dev-packages]
 coveralls = "*"
 nose = "*"
-sphinx = "*"
-pallets-sphinx-themes = "*"
 
 [packages]
 requests = "*"
@@ -15,8 +13,6 @@ python-dateutil = "*"
 pytz = "*"
 flask = "*"
 pillow = ">=7.1.0"
-recommonmark = "*"
-urllib3 = "*"
 werkzeug = "*"
 
 [requires]
