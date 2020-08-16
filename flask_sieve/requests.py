@@ -16,9 +16,6 @@ class FormRequest:
             raise ValidationException(self._validator.messages())
         return True
 
-    def register_rule_handler(self, handler, message, params_count=0):
-        pass
-
     @staticmethod
     def messages():
         return {}

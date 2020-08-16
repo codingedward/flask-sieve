@@ -60,7 +60,6 @@ class TestValidator(unittest.TestCase):
         validator.set_request(request)
         self.assertTrue(validator.passes())
 
-
     def test_validate_decorator(self):
         class FailingRequest:
             def validate(self):
@@ -104,6 +103,32 @@ class TestValidator(unittest.TestCase):
             message='This number must be odd.',
             params_count=0
         )
+        self.set_validator_params(
+            rules={'number': ['odd']},
+            request={'number': 4}
+        )
+        self.assertTrue(self._validator.fails())
+        self.assertDictEqual({
+            'number': [
+                'This number must be odd.'
+            ]
+        }, self._validator.messages())
+        self.set_validator_params(
+            rules={'number': ['odd']},
+            request={'number': 3}
+        )
+        self.assertTrue(self._validator.passes())
+
+    def test_translates_validations_set_through_custom_handlers(self):
+        def validate_odd(value, **kwargs):
+            return int(value) % 2
+        self._validator.set_custom_handlers([
+            {
+                'handler': validate_odd,
+                'message':'This number must be odd.',
+                'params_count':0
+            }
+        ])
         self.set_validator_params(
             rules={'number': ['odd']},
             request={'number': 4}

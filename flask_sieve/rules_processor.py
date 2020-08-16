@@ -191,7 +191,7 @@ class RulesProcessor:
 
     def validate_dimensions(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='dimensions')
-        if not self.validate_file(value):
+        if not self.validate_image(value):
             return False
         try:
             image = Image.open(value)

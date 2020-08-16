@@ -27,7 +27,7 @@ class Validator:
 
     def set_custom_handlers(self, handlers):
         for handler in handlers:
-            self.register_error_handler(**handler)
+            self.register_rule_handler(**handler)
 
     def register_rule_handler(self, handler, message, params_count=0):
         if not handler.__name__.startswith('validate_'):

@@ -294,7 +294,7 @@ class RegisterRequest(FormRequest):
 #### Custom Rules on `Validator` Instance
 
 To add a custom rule handler to a `Validator` instance, you have will have to use
-`register_custom_handler` method as shown below:
+`register_rule_handler` method as shown below:
 
 ```python
 from flask import Flask, jsonify, request
@@ -310,7 +310,7 @@ def validate_odd(value, **kwargs):
 def register():
     rules = {'avatar': ['image', 'dimensions:200x200']}
     validator = Validator(rules=rules, request=request)
-    validator.register_custom_handler(
+    validator.register_rule_handler(
         handler=validate_odd,
         message='Must be odd',
         params_count=0

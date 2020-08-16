@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Flask-Sieve'
-copyright = '2019, Edward Njoroge'
+copyright = '2020, Edward Njoroge'
 author = 'Edward Njoroge'
 
 # The short X.Y version
-version = '0.0.2'
+version = '1.1'
 # The full version, including alpha/beta/rc tags
-release = 'alpha'
+release = '1.1.2'
 
 
 # -- General configuration ---------------------------------------------------
