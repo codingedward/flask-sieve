@@ -6,6 +6,16 @@ from werkzeug.datastructures import FileStorage
 from flask_sieve.parser import Parser
 from flask_sieve.rules_processor import RulesProcessor
 
+class FakeFileStream:
+    def __init__(self, buf):
+       self.buf = buf
+
+    def read(self, buf_size):
+        return self.buf[:buf_size]
+
+    def seek(self, value):
+        pass
+
 
 class TestRulesProcessor(unittest.TestCase):
     def setUp(self):
@@ -19,7 +29,7 @@ class TestRulesProcessor(unittest.TestCase):
             name='image'
         )
         self.invalid_file = FileStorage(
-            stream=self.stream,
+            stream=FakeFileStream(bytearray([0xFE, 0x58, 0x8F, 0x00, 0x08])),
             filename='invalid.png'
         )
 
@@ -285,6 +295,10 @@ class TestRulesProcessor(unittest.TestCase):
             rules={'field': ['dimensions:2x1']},
             request={'field': 'not a file'}
         )
+        self.assert_fails(
+            rules={'field': ['dimensions:1x1']},
+            request={'field': self.invalid_file}
+        )
 
     def test_validates_distinct(self):
         self.assert_passes(
@@ -326,6 +340,10 @@ class TestRulesProcessor(unittest.TestCase):
         self.assert_fails(
             rules={'field': ['extension:png']},
             request={'field': 1}
+        )
+        self.assert_fails(
+            rules={'field': ['extension:tnp']},
+            request={'field': self.invalid_file}
         )
 
     def test_validates_email(self):
@@ -564,6 +582,10 @@ class TestRulesProcessor(unittest.TestCase):
         self.assert_fails(
             rules={'field': ['mime_types:image/png']},
             request={'field': 1}
+        )
+        self.assert_fails(
+            rules={'field': ['mime_types:image/xpng']},
+            request={'field': self.invalid_file}
         )
 
     def test_validates_min(self):
