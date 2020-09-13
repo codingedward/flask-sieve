@@ -232,7 +232,11 @@ class RulesProcessor:
         if not self.validate_file(value):
             return False
         self._assert_params_size(size=1, params=params, rule='extension')
-        return value.filename.split('.')[-1].lower() == params[0]
+        kind = filetype.guess(value.stream.read(512))
+        value.seek(0)
+        if kind is None:
+            return value.filename.split('.')[-1].lower() == params[0]
+        return kind.extension in params
 
     @staticmethod
     def validate_file(value, **kwargs):

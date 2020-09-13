@@ -341,6 +341,10 @@ class TestRulesProcessor(unittest.TestCase):
             rules={'field': ['extension:png']},
             request={'field': 1}
         )
+        self.assert_fails(
+            rules={'field': ['extension:tnp']},
+            request={'field': self.invalid_file}
+        )
 
     def test_validates_email(self):
         self.assert_passes(
