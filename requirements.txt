@@ -4,6 +4,7 @@ click==7.1.2
 coverage==5.2.1
 coveralls==2.1.2
 docopt==0.6.2
+filetype==1.0.7
 Flask==1.1.2
 idna==2.10
 itsdangerous==1.1.0

@@ -7,6 +7,7 @@ import json
 import pytz
 import operator
 import requests
+import filetype
 
 from PIL import Image
 from dateutil.parser import parse as dateparse
@@ -375,7 +376,11 @@ class RulesProcessor:
         if not self.validate_file(value):
             return False
         self._assert_params_size(size=1, params=params, rule='mime_types')
-        return value.mimetype in params
+        kind = filetype.guess(value.stream.read(512))
+        value.seek(0)
+        if kind is None:
+            return value.mimetype in params
+        return kind.mime in params
 
     def validate_min(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='min')
