@@ -182,13 +182,10 @@ In case validation fails to pass, the following is the default format of the gen
 }
 ```
 
-This format can be configured using the following flask configurations
-
- Flask Config Key | Description
- :---------------: | :----------
- SIEVE_RESPONSE_MESSAGE | Set this to modify your default error message e.g "Invalid Input"
- SIEVE_INCLUDE_SUCCESS_KEY | Set this to False to remove the success key from the response
- SIEVE_RESPONSE_WRAPPER | Set this to wrap your response e.g. `data`
+This format can be configured using the following flask configurations:
+- `SIEVE_RESPONSE_MESSAGE` - Set this to modify your default error message e.g "Invalid Input".
+- `SIEVE_INCLUDE_SUCCESS_KEY` - Set this to False to remove the success key from the response.
+- `SIEVE_RESPONSE_WRAPPER` - Set this to wrap your response e.g. `data`.
 
 
 ### Response Status Code
