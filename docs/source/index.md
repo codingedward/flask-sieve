@@ -165,7 +165,7 @@ class PostRequest(JsonRequest):
 
 ### Error Messages Format
 
-In case validation fails to pass, the following is the format of the generated response:
+In case validation fails to pass, the following is the default format of the generated response:
 ```js
 {
     success: False,
@@ -181,7 +181,22 @@ In case validation fails to pass, the following is the format of the generated r
     }
 }
 ```
-All validation error messages will have a HTTP error status code 400.
+
+This format can be configured using the following flask configurations
+
+ Flask Config Key | Description
+ :---------------: | :----------
+ SIEVE_RESPONSE_MESSAGE | Set this to modify your default error message e.g "Invalid Input"
+ SIEVE_INCLUDE_SUCCESS_KEY | Set this to False to remove the success key from the response
+ SIEVE_RESPONSE_WRAPPER | Set this to wrap your response e.g. `data`
+
+
+### Response Status Code
+
+By default, all validation error messages will have a HTTP error status code 400. This can be configured by setting the flask config `SIEVE_INVALID_STATUS_CODE`.
+```python
+app.config['SIEVE_INVALID_STATUS_CODE'] = 422
+```
 
 ### Stopping on First Validation Failure
 

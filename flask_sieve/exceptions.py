@@ -9,7 +9,7 @@ class ValidationException(Exception):
 def register_error_handler(app):
     def validations_error_handler(ex):
         response = {
-            'message': app.config.get('SIEVE_DEFAULT_RESPONSE_MESSAGE', 'Validation error'),
+            'message': app.config.get('SIEVE_RESPONSE_MESSAGE', 'Validation error'),
             'errors': ex.errors
         }
 
@@ -20,6 +20,7 @@ def register_error_handler(app):
             response = {app.config.get('SIEVE_RESPONSE_WRAPPER'): response}
 
         return jsonify(response), app.config.get('SIEVE_INVALID_STATUS_CODE', 400)
+
     app.register_error_handler(
         ValidationException,
         validations_error_handler

@@ -36,7 +36,7 @@ class TestErrorHandler(unittest.TestCase):
     def test_configuring_response_message(self):
         app = Flask(__name__)
         msg = "Only Chuck Norris can submit invalid data!"
-        app.config['SIEVE_DEFAULT_RESPONSE_MESSAGE'] = msg
+        app.config['SIEVE_RESPONSE_MESSAGE'] = msg
         register_error_handler(app)
         self.assertIn(ValidationException, app.error_handler_spec[None][None])
         errors = {'field': 'Test error'}
@@ -94,7 +94,7 @@ class TestErrorHandler(unittest.TestCase):
         self.assertIn('Test error', str(response.get_json()))
         self.assertTrue('data' in response.get_json())
 
-    def test_wrapping_response_with_data(self):
+    def test_wrapping_response_without_data(self):
         app = Flask(__name__)
         register_error_handler(app)
         self.assertIn(ValidationException, app.error_handler_spec[None][None])
