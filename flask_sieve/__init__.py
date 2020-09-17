@@ -8,5 +8,6 @@ class Sieve:
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    @staticmethod
+    def init_app(app):
         register_error_handler(app)
