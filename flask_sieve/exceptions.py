@@ -11,7 +11,7 @@ def register_error_handler(app):
             'success': False,
             'message': 'Validation error',
             'errors': ex.errors
-        }), 400
+        }), app.config.get('SIEVE_INVALID_STATUS_CODE', 400)
     app.register_error_handler(
         ValidationException,
         validations_error_handler
