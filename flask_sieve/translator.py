@@ -26,9 +26,9 @@ class Translator:
             translated = []
             for validation in validations:
                 if not validation['is_valid']:
-                    custom_message_key = validation['attribute'] + '.' + validation['rule']
-                    if custom_message_key in self._custom_messages:
-                        translated.append(self._custom_messages[custom_message_key])
+                    validation_key = validation['attribute'] + '.' + validation['rule']
+                    if validation_key in self._custom_messages:
+                        translated.append(self._custom_messages[validation_key])
                     else:
                         translated.append(self._translate_validation(validation))
             if len(translated):
@@ -41,13 +41,13 @@ class Translator:
         if validation['rule'] in self._size_rules:
             message = message[validation['attribute_type']]
         message_fields = self._extract_message_fields(message)
-        fields_to_params = self._zip_fields_to_params(
-            fields=message_fields,
-            params=validation['params']
-        )
+        fields_to_params = \
+            self._zip_fields_to_params(fields=message_fields,
+                                       params=validation['params'])
         for field in message_fields:
             if field == ':attribute':
-                message = message.replace(field, validation['attribute'])
+                message = message.replace(field, ' '.join([word for word in
+                        validation['attribute'].split('_') if word != '']))
             else:
                 message = message.replace(field, fields_to_params[field])
         return message

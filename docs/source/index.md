@@ -112,7 +112,11 @@ def register():
         'avatar': ['image', 'dimensions:200x200'],
         'username': ['required', 'string', 'min:6'],
     }
-    validator = Validator(rules=rules, request=request)
+    messages = {
+        'email.required': 'Yikes! The email is required',
+        'avatar.dimensions': 'Please provide an avatar with the right dimensions'
+    }
+    validator = Validator(rules=rules, messages=messages, request=request)
     if validator.passes():
         return jsonify({'message': 'Registered!'}), 200
     return jsonify(validator.messages()), 400
