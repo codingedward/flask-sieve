@@ -113,10 +113,10 @@ def register():
         'username': ['required', 'string', 'min:6'],
     }
     messages = {
-        'email.required': 'Yikes! The email is required'
+        'email.required': 'Yikes! The email is required',
         'avatar.dimensions': 'Please provide an avatar with the right dimensions'
     }
-    validator = Validator(rules=rules, messages=messages request=request)
+    validator = Validator(rules=rules, messages=messages, request=request)
     if validator.passes():
         return jsonify({'message': 'Registered!'}), 200
     return jsonify(validator.messages()), 400
