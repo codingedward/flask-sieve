@@ -11,19 +11,20 @@ class TestValidator(unittest.TestCase):
 
     def test_translates_validations(self):
         self.set_validator_params(
-            rules={'email': ['required', 'email']},
-            request={'email': 'invalid_email'},
+            rules={'email_address': ['required', 'email']},
+            request={'email_address': 'invalid_email'},
         )
         self.assertTrue(self._validator.fails())
-        self.assertIn('valid email', str(self._validator.messages()))
+        self.assertIn('valid email address', str(self._validator.messages()))
 
     def test_translates_validations_with_param(self):
         self.set_validator_params(
-            rules={'name': ['required', 'string', 'min:6']},
-            request={'name': 'joe'},
+            rules={'first_name': ['required', 'string', 'min:6']},
+            request={'first_name': 'joe'},
         )
         self.assertTrue(self._validator.fails())
         self.assertIn('6 characters', str(self._validator.messages()))
+        self.assertIn('first name', str(self._validator.messages()))
 
     def test_translates_validations_with_rest_params(self):
         self.set_validator_params(
