@@ -95,6 +95,23 @@ class TestValidator(unittest.TestCase):
             ]
         }, self._validator.messages())
 
+    def test_translates_validations_with_custom_messages_on_constructor(self):
+        validator = Validator(
+            rules={'email': ['required', 'email']},
+            request={'email': ''},
+            messages={
+                'email.required': 'Kindly provide the email',
+                'email.email': 'Whoa! That is not valid',
+            }
+        )
+        self.assertTrue(validator.fails())
+        self.assertDictEqual({
+            'email': [
+                'Kindly provide the email',
+                'Whoa! That is not valid'
+            ]
+        }, validator.messages())
+
     def test_translates_validations_with_custom_handler(self):
         def validate_odd(value, **kwargs):
             return int(value) % 2

@@ -8,9 +8,10 @@ from flask_sieve.rules_processor import RulesProcessor
 
 
 class Validator:
-    def __init__(self, rules=None, request=None, custom_handlers=None):
+    def __init__(self, rules=None, request=None, custom_handlers=None, 
+            messages=None, **kwargs):
         self._parser = Parser()
-        self._translator = Translator()
+        self._translator = Translator(custom_messages=messages)
         self._processor = RulesProcessor()
         self._rules = rules or {}
         self._custom_handlers = custom_handlers or {}
