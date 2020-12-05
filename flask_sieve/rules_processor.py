@@ -13,6 +13,7 @@ from PIL import Image
 from dateutil.parser import parse as dateparse
 from werkzeug.datastructures import FileStorage
 
+from .conditional_inclusion_rules import conditional_inclusion_rules
 
 class RulesProcessor:
     def __init__(self, app=None, rules=None, request=None):
@@ -36,24 +37,27 @@ class RulesProcessor:
         self._attributes_validations = {}
         for attribute, rules in self._rules.items():
             should_bail = self._has_rule(rules, 'bail')
-            nullable = self._has_rule(rules, 'nullable')
             validations = []
             for rule in rules:
+                is_valid = False
                 handler = self._get_rule_handler(rule['name'])
                 value = self._attribute_value(attribute)
                 attr_type = self._get_type(value, rules)
-                is_valid = False
-                if value is None and nullable:
+                is_nullable = self._is_attribute_nullable(
+                    attribute=attribute,
+                    params=rule['params'],
+                    rules=rules,
+                )
+                if value is None and is_nullable:
                     is_valid = True
                 else:
                     is_valid = handler(
                         value=value,
                         attribute=attribute,
                         params=rule['params'],
-                        nullable=nullable,
+                        nullable=is_nullable,
                         rules=rules
                     )
-
                 validations.append({
                     'attribute': attribute,
                     'rule': rule['name'],
@@ -523,6 +527,28 @@ class RulesProcessor:
             r'^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$',
             str(value).lower()
         ) is not None
+    
+    def _is_attribute_nullable(self, attribute, params, rules, **kwargs):
+        is_explicitly_nullable = self._has_rule(rules, 'nullable')
+        if is_explicitly_nullable:
+            return True
+        value = self._attribute_value(attribute)
+        if value is not None:
+            return False
+        attribute_conditional_rules = list(filter(lambda rule: rule in conditional_inclusion_rules, rules))
+        if len(attribute_conditional_rules) == 0:
+            return False
+        for conditional_rule in attribute_conditional_rules:
+            is_conditional_rule_valid = handler(
+                value=value,
+                attribute=attribute,
+                params=rule['params'],
+                nullable=nullable,
+                rules=rules
+            )
+            if not is_conditional_rule_valid:
+                return False
+        return True
 
     @staticmethod
     def _compare_dates(first, second, comparator):
@@ -628,4 +654,3 @@ class RulesProcessor:
                 'Cannot call method %s with value %s' %
                 (method.__name__, str(value))
             )
-
