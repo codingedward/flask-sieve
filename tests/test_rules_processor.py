@@ -765,6 +765,13 @@ class TestRulesProcessor(unittest.TestCase):
             rules={'field': ['required_without:field_2,field_3']},
             request={'field': '', 'field_2': ''}
         )
+        self.assert_passes(
+            rules={
+                'id': ['required_without:name', 'integer'], 
+                'name': ['required_without:id', 'string', 'confirmed']
+            },
+            request={'id': 123}
+        )
 
     def test_validates_required_multiple_required_withouts(self):
         self.assert_passes(
