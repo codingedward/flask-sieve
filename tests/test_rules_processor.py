@@ -46,8 +46,6 @@ class TestRulesProcessor(unittest.TestCase):
         )
 
     def test_validates_active_url(self):
-        pass
-        return
         self.assert_passes(
             rules={'field': ['active_url']},
             request={'field': 'https://google.com'},
