@@ -698,10 +698,6 @@ class TestRulesProcessor(unittest.TestCase):
             request={'field': '', 'field_2': 'three'}
         )
         self.assert_passes(
-            rules={'field': ['size:0']},
-            request={'field': self.image_file}
-        )
-        self.assert_passes(
             rules={'field': ['required_if:field_2,one,two', 'integer']},
             request={'field_1': '', 'field_2': 'xxxx'}
         )
@@ -720,8 +716,8 @@ class TestRulesProcessor(unittest.TestCase):
             request={'field': '', 'field_2': 'one'}
         )
         self.assert_fails(
-            rules={'field': ['required_unless:field_2,one,two']},
-            request={'field': '', 'field_2': 'three'}
+            rules={'field': ['required_unless:field_2,one,two', 'string']},
+            request={'field_2': 'three'}
         )
 
     def test_validates_required_with(self):
@@ -783,6 +779,13 @@ class TestRulesProcessor(unittest.TestCase):
                 'id': ['required_without:name', 'integer'],
                 'name': ['required_without:id', 'string', 'nullable'],
             },
+            request={'id': 1},
+        )
+        self.assert_passes(
+            rules={
+                'id': ['required_without:name', 'integer'],
+                'id2': ['required_without:id', 'integer'],
+            },
             request={'id': 1}
         )
         self.assert_fails(
@@ -790,7 +793,7 @@ class TestRulesProcessor(unittest.TestCase):
                 'id': ['required_without:name', 'integer'],
                 'id2': ['required_without:id', 'integer'],
             },
-            request={'id': 1}
+            request={'name': 'hi'}
         )
 
     def test_validates_required_without_all(self):

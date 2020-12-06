@@ -535,15 +535,16 @@ class RulesProcessor:
         value = self._attribute_value(attribute)
         if value is not None:
             return False
-        attribute_conditional_rules = list(filter(lambda rule: rule in conditional_inclusion_rules, rules))
+        attribute_conditional_rules = list(filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
         if len(attribute_conditional_rules) == 0:
             return False
         for conditional_rule in attribute_conditional_rules:
+            handler = self._get_rule_handler(conditional_rule['name'])
             is_conditional_rule_valid = handler(
                 value=value,
                 attribute=attribute,
-                params=rule['params'],
-                nullable=nullable,
+                params=conditional_rule['params'],
+                nullable=False,
                 rules=rules
             )
             if not is_conditional_rule_valid:
