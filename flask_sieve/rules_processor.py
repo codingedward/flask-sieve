@@ -550,8 +550,6 @@ class RulesProcessor:
         if is_optional and value is not None:
             return True
 
-        # if value is not None:
-        #     return False
         attribute_conditional_rules = list(filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
         if len(attribute_conditional_rules) == 0:
             return False

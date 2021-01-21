@@ -174,6 +174,16 @@ class TestValidator(unittest.TestCase):
             }
         ])
 
+    def test_cannot_set_custom_handler_without_validate_keyword(self):
+        def method_odd(value, **kwargs):
+            return int(value) % 2
+        with self.assertRaises(ValueError):
+            self._validator.register_rule_handler(
+                handler=method_odd,
+                message='This number must be odd.',
+                params_count=0
+            )
+
     def test_sometimes_request(self):
         self.set_validator_params(
             rules={'number': ['sometimes', 'max:5']},
