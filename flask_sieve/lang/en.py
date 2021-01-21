@@ -54,18 +54,21 @@ rule_messages = {
         'file': 'The :attribute must be less than :value_0 kilobytes.',
         'string': 'The :attribute must be less than :value_0 characters.',
         'array': 'The :attribute must have less than :value_0 items.',
+        'empty': 'The :attribute could not be validated since it is empty.'
     },
     'lte': {
         'numeric': 'The :attribute must be less than or equal :value_0.',
         'file': 'The :attribute must be less than or equal :value_0 kilobytes.',
         'string': 'The :attribute must be less than or equal :value_0 characters.',
         'array': 'The :attribute must not have more than :value_0 items.',
+        'empty': 'The :attribute could not be validated since it is empty.'
     },
     'max': {
         'numeric': 'The :attribute may not be greater than :max_0.',
         'file': 'The :attribute may not be greater than :max_0 kilobytes.',
         'string': 'The :attribute may not be greater than :max_0 characters.',
         'array': 'The :attribute may not have more than :max_0 items.',
+        'empty': 'The :attribute could not be validated since it is empty.'
     },
     'mime_types': 'The :attribute must be a file of type: :values_0.',
     'min': {
@@ -73,6 +76,7 @@ rule_messages = {
         'file': 'The :attribute must be at least :min_0 kilobytes.',
         'string': 'The :attribute must be at least :min_0 characters.',
         'array': 'The :attribute must have at least :min_0 items.',
+        'empty': 'The :attribute could not be validated since it is empty.'
     },
     'not_in': 'The selected :attribute is invalid.',
     'not_regex': 'The :attribute format is invalid.',
