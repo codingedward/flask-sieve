@@ -163,6 +163,17 @@ class TestValidator(unittest.TestCase):
         )
         self.assertTrue(self._validator.passes())
 
+    def test_translates_validations_set_through_custom_handlers(self):
+        def validate_odd(value, **kwargs):
+            return int(value) % 2
+        self._validator.set_custom_handlers([
+            {
+                'handler': validate_odd,
+                'message':'This number must be odd.',
+                'params_count':0
+            }
+        ])
+
     def test_cannot_set_custom_handler_without_validate_keyword(self):
         def method_odd(value, **kwargs):
             return int(value) % 2
@@ -173,9 +184,43 @@ class TestValidator(unittest.TestCase):
                 params_count=0
             )
 
+    def test_sometimes_request(self):
+        self.set_validator_params(
+            rules={'number': ['sometimes', 'max:5']},
+            request={}
+        )
+        self.assertTrue(self._validator.passes())
+
+        self.set_validator_params(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': ''}
+        )
+        self.assertTrue(self._validator.fails())
+        self.assertDictEqual({
+            'number': [
+                'The number could not be validated since it is empty.'
+            ]
+        }, self._validator.messages())
+
+        self.set_validator_params(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': 2}
+        )
+        self.assertTrue(self._validator.passes())
+
+        self.set_validator_params(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': 10}
+        )
+        self.assertTrue(self._validator.fails())
+        self.assertDictEqual({
+            'number': [
+                'The number may not be greater than 5.'
+            ]
+        }, self._validator.messages())
+
     def set_validator_params(self, rules=None, request=None):
         rules = rules or {}
         request = request or {}
         self._validator.set_rules(rules)
         self._validator.set_request(request)
-

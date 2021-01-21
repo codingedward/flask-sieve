@@ -246,6 +246,10 @@ class RulesProcessor:
     def validate_file(value, **kwargs):
         return isinstance(value, FileStorage)
 
+    @staticmethod
+    def validate_empty(value, **kwargs):
+        return value == ''
+
     def validate_filled(self, value, attribute, nullable, **kwargs):
         if self.validate_present(attribute):
             return self.validate_required(value, attribute, nullable)
@@ -364,18 +368,24 @@ class RulesProcessor:
 
     def validate_lt(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lt')
+        if value == '':
+            return False
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
         return value < lower
 
     def validate_lte(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lte')
+        if value == '':
+            return False
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
         return value <= lower
 
     def validate_max(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='max')
+        if value == '':
+            return False
         value = self._get_size(value)
         upper = self._get_size(params[0])
         return value <= upper
@@ -404,6 +414,9 @@ class RulesProcessor:
 
     @staticmethod
     def validate_nullable(value, **kwargs):
+        return True
+
+    def validate_sometimes(self, value, **kwargs):
         return True
 
     def validate_numeric(self, value, **kwargs):
@@ -527,14 +540,16 @@ class RulesProcessor:
             r'^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$',
             str(value).lower()
         ) is not None
-    
+
     def _is_attribute_nullable(self, attribute, params, rules, **kwargs):
         is_explicitly_nullable = self._has_rule(rules, 'nullable')
         if is_explicitly_nullable:
             return True
         value = self._attribute_value(attribute)
-        if value is not None:
-            return False
+        is_optional = self._has_rule(rules, 'sometimes')
+        if is_optional and value is not None:
+            return True
+
         attribute_conditional_rules = list(filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
         if len(attribute_conditional_rules) == 0:
             return False
@@ -621,6 +636,8 @@ class RulesProcessor:
             return 'array'
         elif self.validate_file(value):
             return 'file'
+        elif self.validate_empty(value):
+            return 'empty'
         return 'string'
 
     def _has_any_of_rules(self, subset, rules):

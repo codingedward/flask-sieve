@@ -580,6 +580,10 @@ The given _field_ must match the field under validation.
 
 The field under validation must have a size matching the given _value_. For string data, _value_ corresponds to the number of characters. For numeric data, _value_ corresponds to a given integer value. For an array, _size_ corresponds to the `count` of the array. For files, _size_ corresponds to the file size in kilobytes.
 
+#### sometimes
+
+The other validations will only apply if this field is present and non-empty. Incompatible with _required_ and _nullable_.
+
 #### starts_with:_foo_,_bar_,...
 
 The field under validation must start with one of the given values.
