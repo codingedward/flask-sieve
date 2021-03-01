@@ -793,7 +793,7 @@ class TestRulesProcessor(unittest.TestCase):
         )
         self.assert_passes(
             rules={
-                'id': ['required_without:name', 'integer'], 
+                'id': ['required_without:name', 'integer'],
                 'name': ['required_without:id', 'string', 'confirmed']
             },
             request={'id': 123}
@@ -963,6 +963,44 @@ class TestRulesProcessor(unittest.TestCase):
             request={}
         )
 
+    def test_validates_sometimes(self):
+        self.assert_passes(
+            rules={'number': ['sometimes', 'max:5']},
+            request={}
+        )
+        self.assert_passes(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': 2}
+        )
+        self.assert_fails(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': ''}
+        )
+        self.assert_fails(
+            rules={'number': ['sometimes', 'max:5']},
+            request={'number': 10}
+        )
+        self.assert_passes(
+            rules={
+                'zipCode': ['sometimes', 'numeric'],
+                'website': ['sometimes', 'url']
+            },
+            request={}
+        )
+        self.assert_passes(
+            rules={
+                'zipCode': ['sometimes', 'numeric'],
+                'website': ['sometimes', 'url']
+            },
+            request={'website': 'https://google.com'}
+        )
+        self.assert_fails(
+            rules={
+                'zipCode': ['sometimes', 'numeric'],
+                'website': ['sometimes', 'url']
+            },
+            request={'website': 'ogle.com'}
+        )
 
     def test_validates_uuid(self):
         self.assert_passes(
