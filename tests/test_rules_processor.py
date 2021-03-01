@@ -966,6 +966,13 @@ class TestRulesProcessor(unittest.TestCase):
             },
             request={'website': 'https://google.com'}
         )
+        self.assert_fails(
+            rules={
+                'zipCode': ['sometimes', 'numeric'],
+                'website': ['sometimes', 'url']
+            },
+            request={'website': 'ogle.com'}
+        )
 
 
     def test_validates_uuid(self):
