@@ -246,10 +246,6 @@ class RulesProcessor:
     def validate_file(value, **kwargs):
         return isinstance(value, FileStorage)
 
-    @staticmethod
-    def validate_empty(value, **kwargs):
-        return value == ''
-
     def validate_filled(self, value, attribute, nullable, **kwargs):
         if self.validate_present(attribute):
             return self.validate_required(value, attribute, nullable)
@@ -368,7 +364,7 @@ class RulesProcessor:
 
     def validate_lt(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lt')
-        if value == '':
+        if self._is_value_empty(value):
             return False
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
@@ -376,7 +372,7 @@ class RulesProcessor:
 
     def validate_lte(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lte')
-        if value == '':
+        if self._is_value_empty(value):
             return False
         value = self._get_size(value)
         lower = self._get_size(self._attribute_value(params[0]))
@@ -384,7 +380,7 @@ class RulesProcessor:
 
     def validate_max(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='max')
-        if value == '':
+        if self._is_value_empty(value):
             return False
         value = self._get_size(value)
         upper = self._get_size(params[0])
@@ -437,7 +433,7 @@ class RulesProcessor:
         return re.match(params[0], value)
 
     def validate_required(self, value, attribute, nullable, **kwargs):
-        if not value and not nullable:
+        if (not value and value != False and value != 0) and not nullable:
             return False
         return self.validate_present(attribute)
 
@@ -636,7 +632,7 @@ class RulesProcessor:
             return 'array'
         elif self.validate_file(value):
             return 'file'
-        elif self.validate_empty(value):
+        elif self._is_value_empty(value):
             return 'empty'
         return 'string'
 
@@ -654,6 +650,10 @@ class RulesProcessor:
                 return None
             request_param = request_param[accessor]
         return request_param
+
+    @staticmethod
+    def _is_value_empty(value, **kwargs):
+        return (not value and value != 0)
 
     @staticmethod
     def _assert_params_size(size, params, rule):
