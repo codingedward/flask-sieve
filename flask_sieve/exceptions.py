@@ -13,7 +13,7 @@ def register_error_handler(app):
             'errors': ex.errors
         }
 
-        if app.config.get('SIEVE_INCLUDE_SUCCESS_KEY'):
+        if app.config.get('SIEVE_INCLUDE_SUCCESS_KEY', True):
             response['success'] = False
 
         if app.config.get('SIEVE_RESPONSE_WRAPPER'):

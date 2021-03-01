@@ -33,6 +33,19 @@ class TestErrorHandler(unittest.TestCase):
         self.assertEqual(422, status)
         self.assertIn('Test error', str(response.get_json()))
 
+    def test_default_response_message(self):
+        app = Flask(__name__)
+        register_error_handler(app)
+        self.assertIn(ValidationException, app.error_handler_spec[None][None])
+        errors = {'field': 'Test error'}
+
+        with app.app_context():
+            response, status = app.error_handler_spec[None][None][ValidationException](
+                ValidationException(errors)
+            )
+        self.assertEqual(400, status)
+        self.assertIn('Validation error', str(response.get_json()))
+
     def test_configuring_response_message(self):
         app = Flask(__name__)
         msg = "Only Chuck Norris can submit invalid data!"
@@ -63,7 +76,35 @@ class TestErrorHandler(unittest.TestCase):
         self.assertEqual(400, status)
         self.assertTrue('success' in response.get_json())
 
-    def test_keeping_removing_message(self):
+    def test_keeping_success_message(self):
+        app = Flask(__name__)
+        app.config['SIEVE_INCLUDE_SUCCESS_KEY'] = True
+
+        register_error_handler(app)
+        self.assertIn(ValidationException, app.error_handler_spec[None][None])
+        errors = {'field': 'Test error'}
+
+        with app.app_context():
+            response, status = app.error_handler_spec[None][None][ValidationException](
+                ValidationException(errors)
+            )
+        self.assertEqual(400, status)
+        self.assertTrue('success' in response.get_json())
+
+    def test_having_success_message_by_default(self):
+        app = Flask(__name__)
+        register_error_handler(app)
+        self.assertIn(ValidationException, app.error_handler_spec[None][None])
+        errors = {'field': 'Test error'}
+
+        with app.app_context():
+            response, status = app.error_handler_spec[None][None][ValidationException](
+                ValidationException(errors)
+            )
+        self.assertEqual(400, status)
+        self.assertTrue('success' in response.get_json())
+
+    def test_removing_success_message(self):
         app = Flask(__name__)
         app.config['SIEVE_INCLUDE_SUCCESS_KEY'] = False
 
