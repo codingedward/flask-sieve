@@ -184,41 +184,6 @@ class TestValidator(unittest.TestCase):
                 params_count=0
             )
 
-    def test_sometimes_request(self):
-        self.set_validator_params(
-            rules={'number': ['sometimes', 'max:5']},
-            request={}
-        )
-        self.assertTrue(self._validator.passes())
-
-        self.set_validator_params(
-            rules={'number': ['sometimes', 'max:5']},
-            request={'number': ''}
-        )
-        self.assertTrue(self._validator.fails())
-        self.assertDictEqual({
-            'number': [
-                'The number could not be validated since it is empty.'
-            ]
-        }, self._validator.messages())
-
-        self.set_validator_params(
-            rules={'number': ['sometimes', 'max:5']},
-            request={'number': 2}
-        )
-        self.assertTrue(self._validator.passes())
-
-        self.set_validator_params(
-            rules={'number': ['sometimes', 'max:5']},
-            request={'number': 10}
-        )
-        self.assertTrue(self._validator.fails())
-        self.assertDictEqual({
-            'number': [
-                'The number may not be greater than 5.'
-            ]
-        }, self._validator.messages())
-
     def set_validator_params(self, rules=None, request=None):
         rules = rules or {}
         request = request or {}

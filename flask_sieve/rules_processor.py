@@ -547,7 +547,7 @@ class RulesProcessor:
             return True
         value = self._attribute_value(attribute)
         is_optional = self._has_rule(rules, 'sometimes')
-        if is_optional and value is not None:
+        if is_optional and value is None:
             return True
 
         attribute_conditional_rules = list(filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
