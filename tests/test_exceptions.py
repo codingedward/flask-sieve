@@ -44,7 +44,6 @@ class TestErrorHandler(unittest.TestCase):
                 ValidationException(errors)
             )
         self.assertEqual(400, status)
-        print(str(response.get_json()))
         self.assertIn('Validation error', str(response.get_json()))
 
     def test_configuring_response_message(self):

@@ -1039,12 +1039,14 @@ class TestRulesProcessor(unittest.TestCase):
         self._assert(rules, request, True)
 
     def _assert(self, rules, request, passes):
-        p = self.parser
-        v = self.processor
-        v.set_request(request)
-        p.set_rules(rules)
-        v.set_rules(p.parsed_rules())
-        self.assertTrue(v.passes() if passes else v.fails())
+        self.processor.set_request(request)
+        self.parser.set_rules(rules)
+        self.processor.set_rules(self.parser.parsed_rules())
+        if passes:
+            self.assertTrue(self.processor.passes())
+        else:
+            self.assertTrue(self.processor.fails())
+
 
     def tearDown(self):
         self.stream.close()
