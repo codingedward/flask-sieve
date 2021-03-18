@@ -6,13 +6,15 @@ verify_ssl = true
 [dev-packages]
 coveralls = "*"
 nose = "*"
+autopep8 = "*"
+pylint = "*"
 
 [packages]
 requests = "*"
 python-dateutil = "*"
 pytz = "*"
 flask = "*"
-pillow = ">=7.1.0"
+pillow = "*"
 werkzeug = "*"
 filetype = "*"
 
