@@ -5,7 +5,7 @@ setup(
     name='flask-sieve',
     description='A Laravel inspired requests validator for Flask',
     long_description='Find the documentation at https://flask-sieve.readthedocs.io/en/latest/',
-    version='2.0.0',
+    version='2.0.1',
     url='https://github.com/codingedward/flask-sieve',
     license='BSD-2',
     author='Edward Njoroge',

@@ -597,6 +597,11 @@ class TestRulesProcessor(unittest.TestCase):
             rules={'field': ['max:10']},
             request={'field': self.image_file}
         )
+        self.assert_passes(
+            rules={'field': ['bail', 'required', 'string', 'max:10'],
+                   'card_cvv': ['bail', 'required', 'string', 'max:8']},
+            request={'field': '8777745434', 'card_cvv': '123'}
+        )
 
     def test_validates_mime_types(self):
         self.assert_passes(
