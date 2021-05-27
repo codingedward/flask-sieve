@@ -2,6 +2,7 @@
 .*.swn
 .*.swo
 .*.swp
+.vim
 .coverage
 docs/build
 .DS_Store

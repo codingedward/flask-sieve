@@ -152,9 +152,9 @@ class RulesProcessor:
         self._assert_params_size(size=1, params=params, rule='before_or_equal')
         return self._compare_dates(value, params[0], operator.le)
 
-    def validate_between(self, value, params, **kwargs):
+    def validate_between(self, value, params, rules, **kwargs):
         self._assert_params_size(size=2, params=params, rule='between')
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         lower = self._get_size(params[0])
         upper = self._get_size(params[1])
         return lower <= value and value <= upper
@@ -251,15 +251,15 @@ class RulesProcessor:
             return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_gt(self, value, params, **kwargs):
+    def validate_gt(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='gt')
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         upper = self._get_size(self._attribute_value(params[0]))
         return value > upper
 
-    def validate_gte(self, value, params, **kwargs):
+    def validate_gte(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='gte')
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         upper = self._get_size(self._attribute_value(params[0]))
         return value >= upper
 
@@ -362,27 +362,27 @@ class RulesProcessor:
     def validate_json(self, value, **kwargs):
         return self._can_call_with_method(json.loads, value)
 
-    def validate_lt(self, value, params, **kwargs):
+    def validate_lt(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lt')
         if self._is_value_empty(value):
             return False
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         lower = self._get_size(self._attribute_value(params[0]))
         return value < lower
 
-    def validate_lte(self, value, params, **kwargs):
+    def validate_lte(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='lte')
         if self._is_value_empty(value):
             return False
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         lower = self._get_size(self._attribute_value(params[0]))
         return value <= lower
 
-    def validate_max(self, value, params, **kwargs):
+    def validate_max(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='max')
         if self._is_value_empty(value):
             return False
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         upper = self._get_size(params[0])
         return value <= upper
 
@@ -396,9 +396,9 @@ class RulesProcessor:
             return value.mimetype in params
         return kind.mime in params
 
-    def validate_min(self, value, params, **kwargs):
+    def validate_min(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='min')
-        value = self._get_size(value)
+        value = self._get_size(value, rules)
         lower = self._get_size(params[0])
         return value >= lower
 
@@ -487,7 +487,7 @@ class RulesProcessor:
         other_value = self._attribute_value(params[0])
         return value == other_value
 
-    def validate_size(self, value, params, **kwargs):
+    def validate_size(self, value, params, rules, **kwargs):
         self._assert_params_size(size=1, params=params, rule='size')
         self._assert_with_method(float, params[0])
         other_value = params[0]
@@ -495,7 +495,7 @@ class RulesProcessor:
             other_value = float(other_value)
         else:
             other_value = int(other_value)
-        return self._get_size(value) == other_value
+        return self._get_size(value, rules) == other_value
 
     def validate_starts_with(self, value, params, **kwargs):
         self._assert_params_size(size=1, params=params, rule='starts_with')
