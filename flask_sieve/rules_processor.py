@@ -15,6 +15,7 @@ from werkzeug.datastructures import FileStorage
 
 from .conditional_inclusion_rules import conditional_inclusion_rules
 
+
 class RulesProcessor:
     def __init__(self, app=None, rules=None, request=None):
         self._app = app
@@ -95,64 +96,64 @@ class RulesProcessor:
         }
 
     @staticmethod
-    def validate_accepted(value, **kwargs):
-        return value in [ 1, '1', 'true', 'yes', 'on', True]
+    def validate_accepted(value, **_kwargs):
+        return value in [1, '1', 'true', 'yes', 'on', True]
 
-    def validate_active_url(self, value, **kwargs):
+    def validate_active_url(self, value, **_kwargs):
         return self._can_call_with_method(requests.options, value)
 
-    def validate_after(self, value, params, **kwargs):
+    def validate_after(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='after')
         return self._compare_dates(value, params[0], operator.gt)
 
-    def validate_after_or_equal(self, value, params, **kwargs):
+    def validate_after_or_equal(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='after_or_equal')
         return self._compare_dates(value, params[0], operator.ge)
 
     @staticmethod
-    def validate_alpha(value, **kwargs):
+    def validate_alpha(value, **_kwargs):
         if not value:
             return False
         value = str(value).replace(' ', '')
         return value.isalpha()
 
     @staticmethod
-    def validate_alpha_dash(value, **kwargs):
+    def validate_alpha_dash(value, **_kwargs):
         if not value:
             return False
         value = str(value)
-        acceptables = [ ' ', '-', '_' ]
+        acceptables = [' ', '-', '_']
         for acceptable in acceptables:
             value = value.replace(acceptable, '')
         return value.isalpha()
 
     @staticmethod
-    def validate_alpha_num(value, **kwargs):
+    def validate_alpha_num(value, **_kwargs):
         if not value:
             return False
         value = str(value).replace(' ', '')
         return value.isalnum()
 
     @staticmethod
-    def validate_array(value, **kwargs):
+    def validate_array(value, **_kwargs):
         try:
             return isinstance(ast.literal_eval(str(value)), list)
         except (ValueError, SyntaxError):
             return False
 
     @staticmethod
-    def validate_bail(**kwargs):
+    def validate_bail(**_kwargs):
         return True
 
-    def validate_before(self, value, params, **kwargs):
+    def validate_before(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='before')
         return self._compare_dates(value, params[0], operator.lt)
 
-    def validate_before_or_equal(self, value, params, **kwargs):
+    def validate_before_or_equal(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='before_or_equal')
         return self._compare_dates(value, params[0], operator.le)
 
-    def validate_between(self, value, params, rules, **kwargs):
+    def validate_between(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=2, params=params, rule='between')
         value = self._get_size(value, rules)
         lower = self._get_size(params[0])
@@ -160,31 +161,31 @@ class RulesProcessor:
         return lower <= value and value <= upper
 
     @staticmethod
-    def validate_boolean(value, **kwargs):
+    def validate_boolean(value, **_kwargs):
         return value in [True, False, 1, 0, '0', '1']
 
-    def validate_confirmed(self, value, attribute, **kwargs):
+    def validate_confirmed(self, value, attribute, **_kwargs):
         return value == self._attribute_value(attribute + '_confirmation')
 
-    def validate_date(self, value, **kwargs):
+    def validate_date(self, value, **_kwargs):
         return self._can_call_with_method(dateparse, value)
 
-    def validate_date_equals(self, value, params, **kwargs):
+    def validate_date_equals(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='date_equals')
         return self._compare_dates(value, params[0], operator.eq)
 
-    def validate_different(self, value, attribute, params, **kwargs):
+    def validate_different(self, value, attribute, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='different')
         return value != self._attribute_value(params[0])
 
-    def validate_digits(self, value, params, **kwargs):
+    def validate_digits(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='digits')
         self._assert_with_method(int, params[0])
         size = int(params[0])
         is_numeric = self.validate_numeric(value)
         return is_numeric and len(str(value).replace('.', '')) == size
 
-    def validate_digits_between(self, value, params, **kwargs):
+    def validate_digits_between(self, value, params, **_kwargs):
         self._assert_params_size(size=2, params=params, rule='digits_between')
         self._assert_with_method(int, params[0])
         self._assert_with_method(int, params[1])
@@ -194,7 +195,7 @@ class RulesProcessor:
         value_len = len(str(value).replace('.', ''))
         return is_numeric and lower <= value_len and value_len <= upper
 
-    def validate_dimensions(self, value, params, **kwargs):
+    def validate_dimensions(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='dimensions')
         if not self.validate_image(value):
             return False
@@ -207,7 +208,7 @@ class RulesProcessor:
             return False
 
     @staticmethod
-    def validate_distinct(value, **kwargs):
+    def validate_distinct(value, **_kwargs):
         try:
             lst = ast.literal_eval(str(value))
             if not isinstance(lst, list):
@@ -217,7 +218,7 @@ class RulesProcessor:
             return False
 
     @staticmethod
-    def validate_email(value, **kwargs):
+    def validate_email(value, **_kwargs):
         pattern = re.compile("""
             ^
             [a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]
@@ -229,10 +230,10 @@ class RulesProcessor:
         return pattern.match(str(value)) is not None
 
     @staticmethod
-    def validate_exists(value, **kwargs):
+    def validate_exists(value, **_kwargs):
         return False
 
-    def validate_extension(self, value, params, **kwargs):
+    def validate_extension(self, value, params, **_kwargs):
         if not self.validate_file(value):
             return False
         self._assert_params_size(size=1, params=params, rule='extension')
@@ -243,37 +244,37 @@ class RulesProcessor:
         return kind.extension in params
 
     @staticmethod
-    def validate_file(value, **kwargs):
+    def validate_file(value, **_kwargs):
         return isinstance(value, FileStorage)
 
-    def validate_filled(self, value, attribute, nullable, **kwargs):
+    def validate_filled(self, value, attribute, nullable, **_kwargs):
         if self.validate_present(attribute):
             return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_gt(self, value, params, rules, **kwargs):
+    def validate_gt(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='gt')
         value = self._get_size(value, rules)
         upper = self._get_size(self._attribute_value(params[0]))
         return value > upper
 
-    def validate_gte(self, value, params, rules, **kwargs):
+    def validate_gte(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='gte')
         value = self._get_size(value, rules)
         upper = self._get_size(self._attribute_value(params[0]))
         return value >= upper
 
-    def validate_image(self, value, **kwargs):
+    def validate_image(self, value, **_kwargs):
         if not self.validate_file(value):
             return False
         ext = value.filename.split('.')[-1]
         return ext in ['jpg', 'jpeg', 'gif', 'png', 'bmp', 'svg', 'tiff', 'tif']
 
     @staticmethod
-    def validate_in(value, params, **kwargs):
+    def validate_in(value, params, **_kwargs):
         return value in params
 
-    def validate_in_array(self, value, params, **kwargs):
+    def validate_in_array(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='in_array')
         other_value = self._attribute_value(params[0])
         try:
@@ -283,14 +284,14 @@ class RulesProcessor:
             return False
 
     @staticmethod
-    def validate_integer(value, **kwargs):
+    def validate_integer(value, **_kwargs):
         return str(value).isdigit()
 
-    def validate_ip(self, value, **kwargs):
+    def validate_ip(self, value, **_kwargs):
         return self.validate_ipv4(value) or self.validate_ipv6(value)
 
     @staticmethod
-    def validate_ipv6(value, **kwargs):
+    def validate_ipv6(value, **_kwargs):
         # S/0: question 319279
         pattern = re.compile(r"""
             ^
@@ -321,7 +322,7 @@ class RulesProcessor:
         return pattern.match(value) is not None
 
     @staticmethod
-    def validate_ipv4(value, **kwargs):
+    def validate_ipv4(value, **_kwargs):
         # S/0: question 319279
         pattern = re.compile(r"""
             ^
@@ -359,10 +360,10 @@ class RulesProcessor:
         """, re.VERBOSE | re.IGNORECASE)
         return pattern.match(value) is not None
 
-    def validate_json(self, value, **kwargs):
+    def validate_json(self, value, **_kwargs):
         return self._can_call_with_method(json.loads, value)
 
-    def validate_lt(self, value, params, rules, **kwargs):
+    def validate_lt(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='lt')
         if self._is_value_empty(value):
             return False
@@ -370,7 +371,7 @@ class RulesProcessor:
         lower = self._get_size(self._attribute_value(params[0]))
         return value < lower
 
-    def validate_lte(self, value, params, rules, **kwargs):
+    def validate_lte(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='lte')
         if self._is_value_empty(value):
             return False
@@ -378,7 +379,7 @@ class RulesProcessor:
         lower = self._get_size(self._attribute_value(params[0]))
         return value <= lower
 
-    def validate_max(self, value, params, rules, **kwargs):
+    def validate_max(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='max')
         if self._is_value_empty(value):
             return False
@@ -386,7 +387,7 @@ class RulesProcessor:
         upper = self._get_size(params[0])
         return value <= upper
 
-    def validate_mime_types(self, value, params, **kwargs):
+    def validate_mime_types(self, value, params, **_kwargs):
         if not self.validate_file(value):
             return False
         self._assert_params_size(size=1, params=params, rule='mime_types')
@@ -396,29 +397,29 @@ class RulesProcessor:
             return value.mimetype in params
         return kind.mime in params
 
-    def validate_min(self, value, params, rules, **kwargs):
+    def validate_min(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='min')
         value = self._get_size(value, rules)
         lower = self._get_size(params[0])
         return value >= lower
 
-    def validate_not_in(self, value, params, **kwargs):
+    def validate_not_in(self, value, params, **_kwargs):
         return not self.validate_in(value, params)
 
-    def validate_not_regex(self, value, params, **kwargs):
+    def validate_not_regex(self, value, params, **_kwargs):
         return not self.validate_regex(value, params)
 
     @staticmethod
-    def validate_nullable(value, **kwargs):
+    def validate_nullable(value, **_kwargs):
         return True
 
-    def validate_sometimes(self, value, **kwargs):
+    def validate_sometimes(self, value, **_kwargs):
         return True
 
-    def validate_numeric(self, value, **kwargs):
+    def validate_numeric(self, value, **_kwargs):
         return self._can_call_with_method(float, value)
 
-    def validate_present(self, attribute, **kwargs):
+    def validate_present(self, attribute, **_kwargs):
         accessors = attribute.split('.')
         request_param = self._request
         for accessor in accessors:
@@ -427,67 +428,67 @@ class RulesProcessor:
             request_param = request_param[accessor]
         return True
 
-    def validate_regex(self, value, params, **kwargs):
+    def validate_regex(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='regex')
         self._assert_with_method(re.compile, params[0])
         return re.match(params[0], value)
 
-    def validate_required(self, value, attribute, nullable, **kwargs):
+    def validate_required(self, value, attribute, nullable, **_kwargs):
         if (not value and value != False and value != 0) and not nullable:
             return False
         return self.validate_present(attribute)
 
-    def validate_required_if(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_if(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=2, params=params, rule='required_if')
         other_value = self._attribute_value(params[0])
         if str(other_value) in params[1:]:
             return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_unless(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_unless(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=2, params=params, rule='required_unless')
         other_value = self._attribute_value(params[0])
         if other_value not in params[1:]:
             return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_with(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_with(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='required_with')
         for param in params:
             if self.validate_present(param):
                 return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_with_all(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_with_all(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=1, params=params,
-                rule='required_with_all')
+                                 rule='required_with_all')
         for param in params:
             if not self.validate_present(param):
                 return True
         return self.validate_required(value, attribute, nullable)
 
-    def validate_required_without(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_without(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=1, params=params,
-                rule='required_without')
+                                 rule='required_without')
         for param in params:
             if not self.validate_present(param):
                 return self.validate_required(value, attribute, nullable)
         return True
 
-    def validate_required_without_all(self, value, attribute, params, nullable, **kwargs):
+    def validate_required_without_all(self, value, attribute, params, nullable, **_kwargs):
         self._assert_params_size(size=1, params=params,
-                rule='required_without_all')
+                                 rule='required_without_all')
         for param in params:
             if self.validate_present(param):
                 return True
         return self.validate_required(value, attribute, nullable)
 
-    def validate_same(self, value, params, **kwargs):
+    def validate_same(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='same')
         other_value = self._attribute_value(params[0])
         return value == other_value
 
-    def validate_size(self, value, params, rules, **kwargs):
+    def validate_size(self, value, params, rules, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='size')
         self._assert_with_method(float, params[0])
         other_value = params[0]
@@ -497,25 +498,25 @@ class RulesProcessor:
             other_value = int(other_value)
         return self._get_size(value, rules) == other_value
 
-    def validate_starts_with(self, value, params, **kwargs):
+    def validate_starts_with(self, value, params, **_kwargs):
         self._assert_params_size(size=1, params=params, rule='starts_with')
         return str(value).startswith(params[0])
 
     @staticmethod
-    def validate_string(value, **kwargs):
+    def validate_string(value, **_kwargs):
         return isinstance(value,
-                str if sys.version_info[0] >= 3 else basestring)
+                          str if sys.version_info[0] >= 3 else basestring)
 
     @staticmethod
-    def validate_timezone(value, **kwargs):
+    def validate_timezone(value, **_kwargs):
         return value in pytz.all_timezones
 
     @staticmethod
-    def validate_unique(value, **kwargs):
+    def validate_unique(value, **_kwargs):
         return False
 
     @staticmethod
-    def validate_url(value, **kwargs):
+    def validate_url(value, **_kwargs):
         pattern = re.compile(r"""
             ^
             (https?|ftp)://  # http, https or ftp
@@ -531,13 +532,13 @@ class RulesProcessor:
         return pattern.match(value) is not None
 
     @staticmethod
-    def validate_uuid(value, **kwargs):
+    def validate_uuid(value, **_kwargs):
         return re.match(
             r'^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$',
             str(value).lower()
         ) is not None
 
-    def _is_attribute_nullable(self, attribute, params, rules, **kwargs):
+    def _is_attribute_nullable(self, attribute, params, rules, **_kwargs):
         is_explicitly_nullable = self._has_rule(rules, 'nullable')
         if is_explicitly_nullable:
             return True
@@ -546,7 +547,8 @@ class RulesProcessor:
         if is_optional and value is None:
             return True
 
-        attribute_conditional_rules = list(filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
+        attribute_conditional_rules = list(
+            filter(lambda rule: rule['name'] in conditional_inclusion_rules, rules))
         if len(attribute_conditional_rules) == 0:
             return False
         for conditional_rule in attribute_conditional_rules:
@@ -601,7 +603,7 @@ class RulesProcessor:
             return float(value)
         elif value_type == 'file':
             value.seek(0, os.SEEK_END)
-            return round(value.tell() /  1024.0, 0)
+            return round(value.tell() / 1024.0, 0)
         return len(str(value))
 
     def _get_type(self, value, rules=None):
@@ -652,7 +654,7 @@ class RulesProcessor:
         return request_param
 
     @staticmethod
-    def _is_value_empty(value, **kwargs):
+    def _is_value_empty(value, **_kwargs):
         return (not value and value != 0)
 
     @staticmethod

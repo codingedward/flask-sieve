@@ -5,6 +5,7 @@ from werkzeug.datastructures import MultiDict
 from flask_sieve.requests import FormRequest, JsonRequest
 from flask_sieve.exceptions import ValidationException
 
+
 class FormMockRequest:
     def __init__(self, data=None):
         data = data or {}
@@ -18,12 +19,13 @@ class JsonMockRequest:
         self.json = data or {}
         self.is_json = True
 
+
 class TestFormRequest(FormRequest):
     @staticmethod
     def rules():
         return {
             'name': ['required', 'string', 'min:6'],
-            'email':['required', 'email'],
+            'email': ['required', 'email'],
             'password': ['required', 'min:8', 'confirmed']
         }
 
@@ -51,6 +53,9 @@ class TestRequests(unittest.TestCase):
             'email': 'johndoe.com',
             'password': 'johh_doe',
         }
+
+    def test_default_request_passes(self):
+        self.assertTrue(FormRequest().validate())
 
     def test_form_request_fails(self):
         request = FormMockRequest(self.invalid_data)

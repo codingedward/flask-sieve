@@ -5,11 +5,12 @@ from flask_sieve.lang.en import rule_messages
 
 class Translator:
     def __init__(self, validations=None, custom_messages=None,
-            handler_messages=None):
+                 handler_messages=None):
         self._validations = validations or {}
         self._custom_messages = custom_messages or {}
         self._handler_messages = handler_messages or {}
-        self._size_rules = ['between', 'gt', 'gte', 'lt', 'lte', 'max', 'min', 'size']
+        self._size_rules = ['between', 'gt', 'gte',
+                            'lt', 'lte', 'max', 'min', 'size']
 
     def set_custom_messages(self, messages):
         self._custom_messages = messages
@@ -26,11 +27,14 @@ class Translator:
             translated = []
             for validation in validations:
                 if not validation['is_valid']:
-                    validation_key = validation['attribute'] + '.' + validation['rule']
+                    validation_key = validation['attribute'] + \
+                        '.' + validation['rule']
                     if validation_key in self._custom_messages:
-                        translated.append(self._custom_messages[validation_key])
+                        translated.append(
+                            self._custom_messages[validation_key])
                     else:
-                        translated.append(self._translate_validation(validation))
+                        translated.append(
+                            self._translate_validation(validation))
             if len(translated):
                 error_messages[attribute] = translated
         return error_messages
@@ -47,7 +51,7 @@ class Translator:
         for field in message_fields:
             if field == ':attribute':
                 message = message.replace(field, ' '.join([word for word in
-                        validation['attribute'].split('_') if word != '']))
+                                                           validation['attribute'].split('_') if word != '']))
             else:
                 message = message.replace(field, fields_to_params[field])
         return message
