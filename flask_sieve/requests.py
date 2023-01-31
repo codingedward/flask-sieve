@@ -24,11 +24,14 @@ class FormRequest:
     def custom_handlers():
         return {}
 
+    def rules(self):
+        return {}
+
 
 class JsonRequest(FormRequest):
     def __init__(self, request=None):
         request = request or flask_request
         if not request.is_json:
-            raise ValidationException({'request': 'Request must be valid JSON'})
+            raise ValidationException(
+                {'request': 'Request must be valid JSON'})
         self._validator = Validator(rules=self.rules(), request=request)
-
