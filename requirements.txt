@@ -7,7 +7,7 @@ coverage==5.5
 coveralls==3.0.1
 docopt==0.6.2
 filetype==1.0.7
-Flask==1.1.2
+Flask==2.2.5
 idna==2.10
 isort==5.7.0
 itsdangerous==1.1.0
